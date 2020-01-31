@@ -1,4 +1,4 @@
-from maeke import __version__
+from tfmake import __version__
 
 
 def test_version():
