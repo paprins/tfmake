@@ -31,9 +31,9 @@ Options:
   --help           Show this message and exit.
 ```
 
-**Note**: by default it uses the bundled `Makefile`. If, for whatever reason you would like to use a different version, use the `--file` option.
+**Note**: by default it uses the bundled `Makefile`. If, for whatever reason you would like to use a different version, use the `--file` option. You can also set an environment variable called `TF_MAKEFILE` with the path to a custom `Makefile`.
 
-> Here's the help for the Makefile
+> Here's the help for the (bundled) Makefile
 ```
 $ tfmake
 
