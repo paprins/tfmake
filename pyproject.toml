@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "tfmake"
-version = "0.5.2"
+version = "0.5.3"
 description = "Python based Makefile wrapper for terraform projects"
 authors = ["Pascal Prins <pascal.prins@foobar-it.com>"]
 include = ["pyproject.toml"]
 
 [tool.poetry.dependencies]
-python = "^2.7"
+python = "^2.7 || ^3.7"
 click = "^7.0"
 toml = "^0.10.0"
 pathlib = "^1.0.1"
