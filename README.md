@@ -7,10 +7,6 @@ You still need `make`, though. The main advantage is that you don't have to copy
 ## DISCLAIMER
 This module includes a highly opinionated `Makefile` implementation. It's working very well for us, but your requirements might be different.
 
-Also, ... we use Amazon AWS as our go-to Cloud Provider. Because we work in a multi-account environment, the bundled `Makefile` uses the AWS account alias to ensure the path to the Terraform state file is unique.
-
-As a result, this module expects the correct AWS credentials to be available. I use [`aws-vault`](https://github.com/99designs/aws-vault) to manage my AWS credentials.
-
 ## Install
 
 ```
@@ -21,17 +17,27 @@ $ pip install tfmake
 > Here's the help for the wrapper
 ```
 $ tfmake --help
-
 Usage: tfmake [OPTIONS] [TARGET] [ARGS]...
 
   Super fancy wrapper for our Terraform Makefile ;)
 
 Options:
-  -f, --file TEXT  Path to Makefile (defaults to bundled Makefile)
-  --help           Show this message and exit.
+  --version                   Show the version and exit.
+  -p, --provider [aws|azure]  Using AWS or Azure (default: aws)?
+  --help                      Show this message and exit.
 ```
 
-**Note**: by default it uses the bundled `Makefile`. If, for whatever reason you would like to use a different version, use the `--file` option. You can also set an environment variable called `TF_MAKEFILE` with the path to a custom `Makefile`.
+## Providers
+Currently, `tfmake` supports two providers: `aws` and `azure`. The default provider is `aws`. Depending on the selected provider, a different, provider specific, `Makefile` is used to wrap `terraform`.
+
+See 'examples' for some ... examples.
+
+Each provider leads to a specific `Makefile`. For example: `provider==azure` leads to `Makefile.azure`.
+
+## Provider Authentication
+The used `Makefile` will _not_ handle authentication. It just assumes you're using an authenticated context.
+
+For, `aws`, I use [`aws-vault`](https://github.com/99designs/aws-vault). For `azure`, I use the [`azure-cli`](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest).
 
 > Here's the help for the (bundled) Makefile
 ```
@@ -56,6 +62,20 @@ Note:
 - parameter 'args' can be used to pass terraform understandable arguments. Example: "make apply args='-input=false -no-color -auto-approve'"
 ```
 
+## Final Notes
+
+By default, before any a `terraform` command is executed, you will be asked to confirm the usage of the current environment.
+
+```
+$ tfmake --provider azure apply
+
+Using workspace 'prd' on 'My_fancy_Azure_Production_subscription'.
+
+Continue? [Y/n]
+```
+
+Please notice that the prompt shows the selected `terraform` workspace and the alias/name of the provider account.
+
 ## Example
 
 > Initialise 'dev' environment
@@ -71,6 +91,14 @@ $ aws-vault exec foobar -- tfmake plan
 > Apply changes
 ```
 $ aws-vault exec foobar -- tfmake apply
+```
+
+> Apply changes using the `azure` provider
+```
+$ az login
+# (optionaly set subscription)
+$ az account set --subscription=YOUR_SUBSCRIPTION_ID_HERE
+$ tfmake --provider azure apply
 ```
 
 > Apply changes ... automagically

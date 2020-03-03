@@ -1,0 +1,81 @@
+.PHONY := all tf_init tf_workspace tf_options tf_confirm azure_info
+.DEFAULT_GOAL := help
+
+SUPPORTED_ENVS = dev tst acc prd
+REQUIRED_BINS = terraform jq aws az
+env           ?= $(shell terraform workspace show)
+
+WHITE := '\033[0;37m'
+BLUE  := '\033[0;34m'
+GREEN := '\033[0;32m'
+RED   := '\033[0;31m'
+
+all: check_prerequisites
+
+# https://github.com/bbaassssiiee/redesign/blob/master/centos7/Makefile
+
+help:
+	@echo "Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)\n"
+	@echo "Where:"
+	@echo "\t- ENVIRONMENT is one of ['dev','tst','acc','prd']"
+	@echo "\t- TARGET is one:"
+	@awk -F ':|##' '/^[^\t].+?:.*?##/ {printf "\033[36m%-30s\033[0m %s\n", $$1, $$NF }' $(MAKEFILE_LIST)
+	@echo "\nNote:\n"
+	@echo "- parameter 'env' is only required when selecting an environment"
+	@echo "- parameter 'args' can be used to pass terraform understandable arguments. Example: \"make apply args='-input=false -no-color -auto-approve'\""
+
+check_prerequisites:
+K := $(foreach bin,$(REQUIRED_BINS), \
+		$(if $(shell which $(bin)),,$(error Before you continue, please install '$(bin)')))
+
+tf_validate:
+ifeq ($(filter $(env),$(SUPPORTED_ENVS)),)
+	$(error Environment '$(env)' is not supported! Valid options are '$(SUPPORTED_ENVS)')
+endif
+
+azure_info:
+	$(eval ARM_SUBSCRIPTION_ID=$(shell az account show --query 'id'))
+	@if [[ -z "${ARM_SUBSCRIPTION_ID}" ]]; then echo "Not logged into Azure"; exit 1; fi;
+	$(eval ARM_ACCOUNT_ALIAS=$(shell az account show --query 'name'))
+
+tf_init: azure_info
+	@if [ -e .terraform/environment ]; then rm .terraform/environment; fi;
+	@if [ -e .terraform/terraform.tfstate ]; then rm .terraform/terraform.tfstate; fi;
+	@terraform init -backend-config 'workspace_key_prefix=$(ARM_ACCOUNT_ALIAS)'
+
+tf_options:
+	$(if $(wildcard vars/$(env).tfvars), $(eval TF_OPTIONS := $(TF_OPTIONS) -var-file "vars/$(env).tfvars"))
+
+tf_workspace:
+	@terraform workspace select $(env) 2> /dev/null || terraform workspace new $(env)
+
+tf_confirm: azure_info
+	@echo "\nUsing workspace '$(env)' on '$(ARM_ACCOUNT_ALIAS)'.\n"
+	@read -p "Continue? [Y/n]" -e INPUT; \
+	case $$INPUT in \
+		[yY]) echo "[continue]"; ;; \
+		*) echo "[exit]"; exit 1; \
+	esac
+
+update: ## Update terraform modules and providers
+	@terraform get -update=true 
+
+select: tf_validate tf_init tf_workspace ## Select and initialize terraform workspace (aka 'stage')
+	@echo $(GREEN)"\n\n>>> Now using Terraform workspace '$(env)' on Azure subscription '$(ARM_ACCOUNT_ALIAS)' ..."$(WHITE)
+
+show: azure_info ## Show current terraform workspace
+	$(eval CURRENT_WORKSPACE=$(shell terraform workspace show))
+	@echo $(GREEN)"\nCurrently using Terraform workspace '$(CURRENT_WORKSPACE)' on Azure subscription '$(ARM_ACCOUNT_ALIAS)' ..."$(WHITE)
+
+plan: tf_validate tf_options tf_confirm ## Generate and show an execution plan
+	@terraform $@ $(TF_OPTIONS) $(args)
+
+apply: tf_validate tf_options tf_confirm ## Builds or changes infrastructure
+	@terraform $@ $(TF_OPTIONS) $(args)
+	@terraform output -no-color -json 2> /dev/null | jq 'with_entries(.value |= .value)' > tf.${env}.outputs.json
+
+destroy: tf_validate tf_options tf_confirm ## Destroy Terraform-managed infrastructure
+	@terraform $@ $(TF_OPTIONS) $(args)
+
+refresh: tf_validate tf_options tf_confirm ## Refresh terraform state
+	@terraform $@ $(TF_OPTIONS) $(args)

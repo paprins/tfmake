@@ -1,4 +1,4 @@
-.PHONY := all tf_init tf_workspace tf_options tf_info aws_account_info
+.PHONY := all tf_init tf_workspace tf_options tf_confirm aws_account_info
 .DEFAULT_GOAL := help
 
 SUPPORTED_ENVS = dev tst acc prd
@@ -46,8 +46,13 @@ tf_options:
 tf_workspace:
 	@terraform workspace select $(env) 2> /dev/null || terraform workspace new $(env)
 
-tf_info: aws_account_info
-	@echo "\n\nUsing workspace '$(env)' on '$(AWS_ACCOUNT_ALIAS)' ...\n\n"
+tf_confirm: aws_account_info
+	@echo "\nUsing workspace '$(env)' on '$(AWS_ACCOUNT_ALIAS)'.\n"
+	@read -p "Continue? [Y/n]" -e INPUT; \
+	case $$INPUT in \
+		[yY]) echo "[continue]"; ;; \
+		*) echo "[exit]"; exit 1; \
+	esac
 
 update: ## Update terraform modules and providers
 	@terraform get -update=true 
@@ -59,15 +64,15 @@ show: aws_account_info ## Show current terraform workspace
 	$(eval CURRENT_WORKSPACE=$(shell terraform workspace show))
 	@echo $(GREEN)"\nCurrently using Terraform workspace '$(CURRENT_WORKSPACE)' on AWS account '$(AWS_ACCOUNT_ALIAS)' ..."$(WHITE)
 
-plan: tf_validate tf_options tf_info ## Generate and show an execution plan
+plan: tf_validate tf_options tf_confirm ## Generate and show an execution plan
 	@terraform $@ $(TF_OPTIONS) $(args)
 
-apply: tf_validate tf_options tf_info ## Builds or changes infrastructure
+apply: tf_validate tf_options tf_confirm ## Builds or changes infrastructure
 	@terraform $@ $(TF_OPTIONS) $(args)
 	@terraform output -no-color -json 2> /dev/null | jq 'with_entries(.value |= .value)' > tf.${env}.outputs.json
 
-destroy: tf_validate tf_options tf_info ## Destroy Terraform-managed infrastructure
+destroy: tf_validate tf_options tf_confirm ## Destroy Terraform-managed infrastructure
 	@terraform $@ $(TF_OPTIONS) $(args)
 
-refresh: tf_validate tf_options tf_info ## Refresh terraform state
+refresh: tf_validate tf_options tf_confirm ## Refresh terraform state
 	@terraform $@ $(TF_OPTIONS) $(args)
