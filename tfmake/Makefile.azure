@@ -35,14 +35,15 @@ ifeq ($(filter $(env),$(SUPPORTED_ENVS)),)
 endif
 
 azure_info:
-	$(eval ARM_SUBSCRIPTION_ID=$(shell az account show --query 'id'))
+	$(eval ARM_SUBSCRIPTION_ID=$(shell az account show --query 'id' --output tsv))
 	@if [[ -z "${ARM_SUBSCRIPTION_ID}" ]]; then echo "Not logged into Azure"; exit 1; fi;
-	$(eval ARM_ACCOUNT_ALIAS=$(shell az account show --query 'name'))
+	$(eval ARM_ACCOUNT_ALIAS=$(shell az account show --query 'name' --output tsv))
 
 tf_init: azure_info
 	@if [ -e .terraform/environment ]; then rm .terraform/environment; fi;
 	@if [ -e .terraform/terraform.tfstate ]; then rm .terraform/terraform.tfstate; fi;
-	@terraform init -backend-config 'workspace_key_prefix=$(ARM_ACCOUNT_ALIAS)'
+	$(eval WORK_DIR=$(shell basename $$PWD))
+	@terraform init -backend-config 'key=$(ARM_ACCOUNT_ALIAS)/$(WORK_DIR)/$(env).terraform.tfstate'
 
 tf_options:
 	$(if $(wildcard vars/$(env).tfvars), $(eval TF_OPTIONS := $(TF_OPTIONS) -var-file "vars/$(env).tfvars"))
@@ -54,7 +55,7 @@ tf_confirm: azure_info
 	@echo "\nUsing workspace '$(env)' on '$(ARM_ACCOUNT_ALIAS)'.\n"
 	@read -p "Continue? [Y/n]" -e INPUT; \
 	case $$INPUT in \
-		[yY]) echo "[continue]"; ;; \
+		[yY]) ;; \
 		*) echo "[exit]"; exit 1; \
 	esac
 

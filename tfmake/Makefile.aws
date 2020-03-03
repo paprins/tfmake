@@ -51,7 +51,7 @@ tf_confirm: aws_account_info
 	@echo "\nUsing workspace '$(env)' on '$(AWS_ACCOUNT_ALIAS)'.\n"
 	@read -p "Continue? [Y/n]" -e INPUT; \
 	case $$INPUT in \
-		[yY]) echo "[continue]"; ;; \
+		[yY]) ;; \
 		*) echo "[exit]"; exit 1; \
 	esac
 
