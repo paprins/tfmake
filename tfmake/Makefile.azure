@@ -15,6 +15,7 @@ all: check_prerequisites
 # https://github.com/bbaassssiiee/redesign/blob/master/centos7/Makefile
 
 help:
+	@echo "\nThe Azure Edition\n"
 	@echo "Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)\n"
 	@echo "Where:"
 	@echo "\t- ENVIRONMENT is one of ['dev','tst','acc','prd']"

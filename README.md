@@ -17,22 +17,23 @@ $ pip install tfmake
 > Here's the help for the wrapper
 ```
 $ tfmake --help
-Usage: tfmake [OPTIONS] [TARGET] [ARGS]...
-
-  Super fancy wrapper for our Terraform Makefile ;)
+Usage: tfmake [OPTIONS] COMMAND [ARGS]...
 
 Options:
-  --version                   Show the version and exit.
-  -p, --provider [aws|azure]  Using AWS or Azure (default: aws)?
-  --help                      Show this message and exit.
+  --version  Show the version and exit.
+  --help     Show this message and exit.
+
+Commands:
+  aws
+  azure
 ```
 
 ## Providers
-Currently, `tfmake` supports two providers: `aws` and `azure`. The default provider is `aws`. Depending on the selected provider, a different, provider specific, `Makefile` is used to wrap `terraform`.
+Currently, `tfmake` supports two providers: `aws` and `azure`. The default provider is `aws`. Depending on the selected provider, a different, provider specific, `Makefile` is used to wrap `terraform`. Here, the provider is selected by using the right command.
 
 See 'examples' for some ... examples.
 
-Each provider leads to a specific `Makefile`. For example: `provider==azure` leads to `Makefile.azure`.
+Each provider leads to a specific `Makefile`. For example: `provider==azure` leads to using `Makefile.azure`.
 
 ## Provider Authentication
 The used `Makefile` will _not_ handle authentication. It just assumes you're using an authenticated context.
@@ -41,7 +42,8 @@ For, `aws`, I use [`aws-vault`](https://github.com/99designs/aws-vault). For `az
 
 > Here's the help for the (bundled) Makefile
 ```
-$ tfmake
+$ tfmake help
+The AWS Edition
 
 Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)
 
@@ -62,12 +64,14 @@ Note:
 - parameter 'args' can be used to pass terraform understandable arguments. Example: "make apply args='-input=false -no-color -auto-approve'"
 ```
 
+> Use `tfmake azure help` to see the `azure` edition ...
+
 ## Final Notes
 
 By default, before any a `terraform` command is executed, you will be asked to confirm the usage of the current environment.
 
 ```
-$ tfmake --provider azure apply
+$ tfmake azure apply
 
 Using workspace 'prd' on 'My_fancy_Azure_Production_subscription'.
 
@@ -98,7 +102,7 @@ $ aws-vault exec foobar -- tfmake apply
 $ az login
 # (optionaly set subscription)
 $ az account set --subscription=YOUR_SUBSCRIPTION_ID_HERE
-$ tfmake --provider azure apply
+$ tfmake azure apply
 ```
 
 > Apply changes ... automagically

@@ -13,6 +13,7 @@ RED   := '\033[0;31m'
 all: check_prerequisites
 
 help:
+	@echo "\nThe AWS Edition\n"
 	@echo "Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)\n"
 	@echo "Where:"
 	@echo "\t- ENVIRONMENT is one of ['dev','tst','acc','prd']"
