@@ -12,8 +12,6 @@ RED   := '\033[0;31m'
 
 all: check_prerequisites
 
-# https://github.com/bbaassssiiee/redesign/blob/master/centos7/Makefile
-
 help:
 	@echo "\nThe Azure Edition\n"
 	@echo "Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)\n"
