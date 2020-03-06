@@ -51,7 +51,7 @@ tf_workspace:
 
 tf_confirm: azure_info
 	@echo "\nUsing workspace '$(env)' on '$(ARM_ACCOUNT_ALIAS)'.\n"
-	@read -p "Continue? [Y/n]" -e INPUT; \
+	@read -p "Continue? [Y/n]: " INPUT; \
 	case $$INPUT in \
 		[yY]) ;; \
 		*) echo "[exit]"; exit 1; \
