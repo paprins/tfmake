@@ -75,10 +75,12 @@ $ tfmake azure apply
 
 Using workspace 'prd' on 'My_fancy_Azure_Production_subscription'.
 
-Continue? [Y/n]
+Press [ENTER] to continue or [CTRL-C] to stop.
 ```
 
 Please notice that the prompt shows the selected `terraform` workspace and the alias/name of the provider account.
+
+> Use `TFMAKE_AGREE=whatever` to auto confirm that prompt ...
 
 ## Example
 

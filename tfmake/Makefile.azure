@@ -49,13 +49,11 @@ tf_options:
 tf_workspace:
 	@terraform workspace select $(env) 2> /dev/null || terraform workspace new $(env)
 
-tf_confirm: azure_info
-	@echo "\nUsing workspace '$(env)' on '$(ARM_ACCOUNT_ALIAS)'.\n"
-	@read -p "Continue? [Y/n]: " INPUT; \
-	case $$INPUT in \
-		[yY]) ;; \
-		*) echo "[exit]"; exit 1; \
-	esac
+tf_confirm: aws_account_info
+	@echo "\nUsing workspace '$(env)' on '$(AWS_ACCOUNT_ALIAS)'.\n"
+	@if [ -z $$TFMAKE_AGREE ]; then \
+		read -p "Press [ENTER] to continue or [CTRL-C] to stop."; \
+	fi
 
 update: ## Update terraform modules and providers
 	@terraform get -update=true 
