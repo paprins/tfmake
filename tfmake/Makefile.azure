@@ -10,20 +10,18 @@ BLUE  := '\033[0;34m'
 GREEN := '\033[0;32m'
 RED   := '\033[0;31m'
 
-SHELL := '/bin/bash'
-
 all: check_prerequisites
 
 help:
-	@echo -e "\nThe Azure Edition\n"
-	@echo -e "Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)\n"
-	@echo -e "Where:"
-	@echo -e "\t- ENVIRONMENT is one of ['dev','tst','acc','prd']"
-	@echo -e "\t- TARGET is one:"
-	@awk -F ':|##' '/^[^\t].+?:.*?##/ {printf "\033[36m%-30s\033[0m %s\n", $$1, $$NF }' $(MAKEFILE_LIST)
-	@echo -e "\nNote:\n"
-	@echo -e "- parameter 'env' is only required when selecting an environment"
-	@echo -e "- parameter 'args' can be used to pass terraform understandable arguments. Example: \"make apply args='-input=false -no-color -auto-approve'\""
+	@printf "\nThe Azure Edition\n\n"
+	@printf "Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)\n\n"
+	@printf "Where:\n"
+	@printf " ENVIRONMENT is one of ['dev','tst','acc','prd']\n"
+	@printf " TARGET is one:\n"
+	@awk -F ':|##' '/^[^\t].+?:.*?##/ {printf "\033[36m    %-30s\033[0m %s\n", $$1, $$NF }' $(MAKEFILE_LIST)
+	@printf "\nNote:\n\n"
+	@printf " parameter 'env' is only required when selecting an environment\n"
+	@printf " parameter 'args' can be used to pass terraform understandable arguments. Example: \"make apply args='-input=false -no-color -auto-approve'\"\n"
 
 check_prerequisites:
 K := $(foreach bin,$(REQUIRED_BINS), \
@@ -54,7 +52,7 @@ tf_workspace:
 	@terraform workspace select $(env) 2> /dev/null || terraform workspace new $(env)
 
 tf_confirm: azure_info
-	@echo -e "\nUsing workspace '$(env)' on '$(ARM_ACCOUNT_ALIAS)'.\n"
+	@printf "\nUsing workspace '$(env)' on '$(ARM_ACCOUNT_ALIAS)'.\n"
 	@if [ -z $$TFMAKE_AGREE ]; then \
 		echo "Press [ENTER] to continue or [CTRL-C] to stop." && read INPUT; \
 	fi
@@ -63,11 +61,11 @@ update: ## Update terraform modules and providers
 	@terraform get -update=true 
 
 select: tf_validate tf_init tf_workspace ## Select and initialize terraform workspace (aka 'stage')
-	@echo -e $(GREEN)"\n\n>>> Now using Terraform workspace '$(env)' on Azure subscription '$(ARM_ACCOUNT_ALIAS)' ..."$(WHITE)
+	@printf $(GREEN)"\n\n>>> Now using Terraform workspace '$(env)' on Azure subscription '$(ARM_ACCOUNT_ALIAS)' ...\n"$(WHITE)
 
 show: azure_info ## Show current terraform workspace
 	$(eval CURRENT_WORKSPACE=$(shell terraform workspace show))
-	@echo -e $(GREEN)"\nCurrently using Terraform workspace '$(CURRENT_WORKSPACE)' on Azure subscription '$(ARM_ACCOUNT_ALIAS)' ..."$(WHITE)
+	@printf $(GREEN)"\nCurrently using Terraform workspace '$(CURRENT_WORKSPACE)' on Azure subscription '$(ARM_ACCOUNT_ALIAS)' ...\n"$(WHITE)
 
 plan: tf_validate tf_options tf_confirm ## Generate and show an execution plan
 	@terraform $@ $(TF_OPTIONS) $(args)

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tfmake"
-version = "0.7.7"
+version = "0.7.8"
 description = "Python based Makefile wrapper for terraform projects"
 authors = ["Pascal Prins <pascal.prins@foobar-it.com>"]
 include = ["pyproject.toml"]
