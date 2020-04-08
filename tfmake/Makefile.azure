@@ -45,6 +45,9 @@ tf_init: azure_info
 	$(eval CURRENT_TF_KEY=$(shell cat terraform.tf | grep key | sed 's/["[:space:]]//g' | cut -d "=" -f 2 | cut -d "#" -f 1))
 	@terraform init -backend-config 'key=$(ARM_ACCOUNT_ALIAS)/$(CURRENT_TF_KEY)'
 
+	# TODO: dynamically add sas_token
+	# @terraform init -backend-config 'sas_token=xxxxx'
+
 tf_options:
 	$(if $(wildcard vars/$(env).tfvars), $(eval TF_OPTIONS := $(TF_OPTIONS) -var-file "vars/$(env).tfvars"))
 
