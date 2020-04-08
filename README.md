@@ -1,11 +1,13 @@
 # tfmake
 
-This is a Python based wrapper around an opionated `Makefile` I use for `terraform` projects. 
+This is a Python based wrapper around an opionated `Makefile` I use for multi-cloud/cross-account `terraform` projects. 
 
 You still need `make`, though. The main advantage is that you don't have to copy the `Makefile`. 
 
 ## DISCLAIMER
 This module includes a highly opinionated `Makefile` implementation. It's working very well for us, but your requirements might be different.
+
+Also, I've done my best to make this thing work on both MacOS and Linux. If you get an error message (~ and my colleagues haven't beat you to it) ... please get in touch and/or create a PR.
 
 ## Install
 
@@ -48,20 +50,20 @@ The AWS Edition
 Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)
 
 Where:
-	- ENVIRONMENT is one of ['dev','tst','acc','prd']
-	- TARGET is one:
-update                          Update terraform modules and providers
-select                          Select and initialize terraform workspace (aka 'stage')
-show                            Show current terraform workspace
-plan                            Generate and show an execution plan
-apply                           Builds or changes infrastructure
-destroy                         Destroy Terraform-managed infrastructure
-refresh                         Refresh terraform state
+ ENVIRONMENT is one of ['dev','tst','acc','prd']
+ TARGET is one:
+    update                          Update terraform modules and providers
+    select                          Select and initialize terraform workspace (aka 'stage')
+    show                            Show current terraform workspace
+    plan                            Generate and show an execution plan
+    apply                           Builds or changes infrastructure
+    destroy                         Destroy Terraform-managed infrastructure
+    refresh                         Refresh terraform state
 
 Note:
 
-- parameter 'env' is only required when selecting an environment
-- parameter 'args' can be used to pass terraform understandable arguments. Example: "make apply args='-input=false -no-color -auto-approve'"
+ parameter 'env' is only required when selecting an environment
+ parameter 'args' can be used to pass terraform understandable arguments. Example: "make apply args='-input=false -no-color -auto-approve'"
 ```
 
 > Use `tfmake azure help` to see the `azure` edition ...
@@ -80,7 +82,7 @@ Press [ENTER] to continue or [CTRL-C] to stop.
 
 Please notice that the prompt shows the selected `terraform` workspace and the alias/name of the provider account.
 
-> Use `TFMAKE_AGREE=whatever` to auto confirm that prompt ...
+> Use `TFMAKE_AGREE=1` to auto confirm that prompt ...
 
 ## Example
 
