@@ -10,18 +10,20 @@ BLUE  := '\033[0;34m'
 GREEN := '\033[0;32m'
 RED   := '\033[0;31m'
 
+SHELL := '/bin/bash'
+
 all: check_prerequisites
 
 help:
-	@echo "\nThe AWS Edition\n"
-	@echo "Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)\n"
-	@echo "Where:"
-	@echo "\t- ENVIRONMENT is one of ['dev','tst','acc','prd']"
-	@echo "\t- TARGET is one:"
+	@echo -e "\nThe AWS Edition\n"
+	@echo -e "Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)\n"
+	@echo -e "Where:"
+	@echo -e "\t- ENVIRONMENT is one of ['dev','tst','acc','prd']"
+	@echo -e "\t- TARGET is one:"
 	@awk -F ':|##' '/^[^\t].+?:.*?##/ {printf "\033[36m%-30s\033[0m %s\n", $$1, $$NF }' $(MAKEFILE_LIST)
-	@echo "\nNote:\n"
-	@echo "- parameter 'env' is only required when selecting an environment"
-	@echo "- parameter 'args' can be used to pass terraform understandable arguments. Example: \"make apply args='-input=false -no-color -auto-approve'\""
+	@echo -e "\nNote:\n"
+	@echo -e "- parameter 'env' is only required when selecting an environment"
+	@echo -e "- parameter 'args' can be used to pass terraform understandable arguments. Example: \"make apply args='-input=false -no-color -auto-approve'\""
 
 check_prerequisites:
 K := $(foreach bin,$(REQUIRED_BINS), \
