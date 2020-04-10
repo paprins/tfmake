@@ -26,8 +26,10 @@ Options:
   --help     Show this message and exit.
 
 Commands:
-  aws
-  azure
+  aws    Use AWS provider.
+  azure  Use Azure provider
+  guess  Default command that guesses what provider you're using.
+  init   Create configuration for provider.
 ```
 
 ## Providers
@@ -115,5 +117,68 @@ $ aws-vault exec foobar -- tfmake apply args='-no-color -auto-approve'
 ```
 
 **Note**: the `args` parameter can be used for arbitrary Terraform arguments.
+
+## Advanced Usage
+
+You can use a _per_ project configuration file in which you can specify, for example, environment variables and/or arbitrary commands that need to be execute before or after the `make` target.
+
+```
+$ tfmake init aws
+
+Configuration written to '/your/current/directory/.tfmake'
+```
+
+```
+---
+#
+# Welcome to the wonderful world of TFMAKE!
+#
+# This file is the main config file for your tfmake project.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+#
+# Happy Coding!
+#
+provider: aws
+
+# You can define service wide environment variables here
+# Notes:
+# - when using commands, dont use single quotes (sorry)
+# - commands should be between $( and )
+#
+# environment:
+#    - variable1 = value
+#    - variable2 = $(command)
+
+# You can define commands here that are executed _before_ the Make target
+# Note: dont use single quotes (sorry)
+#
+# before:
+#    - echo "[INFO] before"
+
+# You can define commands here that are executed _after_ the Make target
+# Note: dont use single quotes (sorry)
+#
+# after:
+#    - echo "[INFO] after"%
+```
+
+#### Section `provider`
+The `provider` section specifies what (default) provider to use for this project. As a result, you don't have to specify it anymore on the command-line.
+
+So, no more `tfmake azure plan`. Instead, just configure the `provider` property and type type `tfmake plan`.
+
+#### Section `environment`
+The `environment` section can contain a list of environment variables that need to be set before calling the `make` target. 
+
+For example, when using the `azure` provider, you might want to dynamically fetch the value for the `ARM_SAS_TOKEN` or `ARM_ACCESS_KEY` from an Azure Key Vault.
+
+#### Section `before`
+
+The `before` section can contain a list of commands that need to be executed preparing the call to the `make` target.
+
+#### Section `after`
+
+The `after` section can contain a list of commands that you can use to cleanup after calling the `make` target.
 
 ~ the end
