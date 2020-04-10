@@ -166,7 +166,7 @@ provider: aws
 #### Section `provider`
 The `provider` section specifies what (default) provider to use for this project. As a result, you don't have to specify it anymore on the command-line.
 
-So, no more `tfmake azure plan`. Instead, just configure the `provider` property and type type `tfmake plan`.
+So, no more `tfmake azure plan`. Instead, just configure the `provider` property and type `tfmake plan`.
 
 #### Section `environment`
 The `environment` section can contain a list of environment variables that need to be set before calling the `make` target. 
