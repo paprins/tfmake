@@ -1,26 +1,16 @@
 import os
 import click
+from jinja2 import Environment, PackageLoader
+import yaml
+import json
 
 from tfmake import __version__
 
-from tfmake.custom import DefaultCommandGroup
+from tfmake.custom import DefaultCommandHandler, DefaultCommandGroup
 
-def call(provider, target, args):
-    '''
-    Call provider specific Makefile using target and (optional) args.
-    '''
-    makefile = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Makefile.{}'.format(provider))
-
-    if not os.path.isfile(makefile):
-        click.echo("Makefile '{}' not found :(".format(makefile))
-        os.sys.exit(1)
-
-    _args = list(args)
-
-    if len(_args) > 0:
-        os.system("make -f {file} {target} {args}".format(file=makefile, target=target, args=' '.join(_args)))
-    else:
-        os.system("make -f {file} {target}".format(file=makefile, target=target))
+env = Environment(
+    loader=PackageLoader('tfmake', 'templates')
+)
 
 @click.group(cls=DefaultCommandGroup)
 @click.version_option(version=__version__)
@@ -31,13 +21,48 @@ def main():
 @click.argument('target', default='help')
 @click.argument('args', nargs=-1)
 def azure(target, args):
-    call('azure', target, args)
+    '''
+    Use Azure provider
+    '''
+    DefaultCommandHandler('azure').call(target, args)
 
-@main.command(name='aws', default_command=True)
+@main.command(name='guess', default_command=True)
+@click.argument('target', default='help')
+@click.argument('args', nargs=-1)
+def guess(target, args):
+    '''
+    Default command that guesses what provider you're using.
+    '''
+    DefaultCommandHandler().call(target, args)
+
+@main.command(name='aws')
 @click.argument('target', default='help')
 @click.argument('args', nargs=-1)
 def aws(target, args):
-    call('aws', target, args)
+    '''
+    Use AWS provider.
+    '''
+    DefaultCommandHandler('aws').call(target, args)
+
+@main.command()
+@click.argument('provider', default='aws')
+def init(provider):
+    '''
+    Create configuration for provider.
+    '''
+    cwd = os.path.join(os.getcwd(), '.tfmake')
+    if os.path.isfile(cwd):
+        click.confirm('Existing configuration found! Do you want to continue?', abort=True)
+
+    # Get provider-specific template
+    # NOTE: this is for future use ... not used yet
+    template = env.get_template('tfmake.{}.j2'.format(provider))
+
+    with open(cwd, 'w+') as f:
+        f.write(template.render(provider=provider))
+
+    click.echo("\nConfiguration written to '{}'".format(cwd))
 
 if __name__ == '__main__':
     main()
+
