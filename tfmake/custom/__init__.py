@@ -61,7 +61,7 @@ class DefaultCommandHandler(object):
                 try:
                     self.config = yaml.safe_load(f)
                 except yaml.parser.ParserError:
-                    sys.exit('[ERROR] {} could not be parsed.'.format(cwd))
+                    os.sys.exit('[ERROR] {} could not be parsed.'.format(_c))
 
         if not provider and self.config:
             self.provider = self.config.get('provider','aws').lower()
