@@ -50,6 +50,7 @@ def before_and_after(f):
             self.after()
         return result
     return wrapper
+
 class DefaultCommandHandler(object):
     def __init__(self, provider = None):
         self.config = None
@@ -61,7 +62,7 @@ class DefaultCommandHandler(object):
                 try:
                     self.config = yaml.safe_load(f)
                 except yaml.parser.ParserError:
-                    sys.exit('[ERROR] {} could not be parsed.'.format(cwd))
+                    os.sys.exit('[ERROR] {} could not be parsed.'.format(_c))
 
         if not provider and self.config:
             self.provider = self.config.get('provider','aws').lower()
@@ -91,6 +92,41 @@ class DefaultCommandHandler(object):
         else:
             os.system("make -f {file} {target}".format(file=makefile, target=target))
 
+    def __get_aws_session(self):
+        return dict()
+
+    def __get_azure_session(self):
+        from azure.common.credentials import get_azure_cli_credentials
+
+        # get azure settings from config
+        _azure = self.config.get('azure')
+
+        if not _azure or not _azure.get('subscription_id'):
+            click.echo('no azure config found ... assuming you fixed it yourself')
+            return
+
+        cred, subscription_id = get_azure_cli_credentials()
+
+        click.echo(cred)
+        click.echo(subscription_id)
+
+        # profile = get_client_from_cli_profile()
+        # credentials, current_sub, tenant = profile.get_login_credentials(subscription_id=_azure['subscription_id'])
+
+        # click.echo(credentials)
+        # click.echo(current_sub)
+        # click.echo('tenant: {}'.format(tenant))
+
+        return dict()
+
+    def __get_session(self):
+        if self.provider == 'aws':
+            session = self.__get_aws_session()
+        elif self.provider == 'azure':
+            session = self.__get_azure_session()
+
+        return session
+
     def before(self):
         '''
         Uses configuration to 'prepare' call to Makefile by setting environment variables and 
@@ -98,6 +134,8 @@ class DefaultCommandHandler(object):
         '''
         if not self.config: 
             return
+
+        session = self.__get_session()
 
         for e in self.config.get('environment', []):
             k,v = map(str.strip, e.split('='))
@@ -117,9 +155,9 @@ class DefaultCommandHandler(object):
             else:
                 os.environ[k] = v
 
-        # process pre actions
-        for pre in self.config.get('before', []):
-            os.system(pre)
+        # execute 'before' actions
+        for cmd in self.config.get('before', []):
+            os.system(cmd)
 
     def after(self):
         '''
@@ -128,5 +166,6 @@ class DefaultCommandHandler(object):
         if not self.config: 
             return
 
-        for post in self.config.get('after', []):
-            os.system(post)
+        # execute 'after' actions
+        for cmd in self.config.get('after', []):
+            os.system(cmd)
