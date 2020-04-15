@@ -5,6 +5,7 @@ import yaml
 import json
 
 from tfmake import __version__
+from outdated import check_outdated
 
 from tfmake.custom import DefaultCommandHandler, DefaultCommandGroup
 
@@ -15,7 +16,14 @@ env = Environment(
 @click.group(cls=DefaultCommandGroup)
 @click.version_option(version=__version__)
 def main():
-    pass
+    is_outdated, latest_version = check_outdated('tfmake', __version__)
+
+    if is_outdated:
+        _msg = '* Your version of tfmake is out of date! Your version is {}, the latest is {} *'.format(__version__, latest_version)
+        
+        click.echo('\n' + ('* ' * 43))
+        click.echo(_msg)
+        click.echo('* ' * 43)    
 
 @main.command(name='azure')
 @click.argument('target', default='help')
