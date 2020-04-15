@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tfmake"
-version = "1.0.0"
+version = "1.0.3"
 description = "Python based Makefile wrapper for terraform projects"
 authors = ["Pascal Prins <pascal.prins@foobar-it.com>"]
 include = ["pyproject.toml"]
@@ -16,11 +16,13 @@ click = "^7.0"
 toml = "^0.10.0"
 pathlib = "^1.0.1"
 Jinja2 = "^2.11.1"
-PyYAML = "^5.3.1"
+PyYAML = "^3.13" # wanted to install ^5.3.1, but azure-cli-core would not let me :(
 azure-common = "^1.1.25"
 msrest = "^0.6.13"
 msrestazure = "^0.6.3"
 azure-core = "^1.4.0"
+outdated = "^0.2.0"
+azure-cli-core = "2.0.49" # this is actually the latest version i can install :(
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"

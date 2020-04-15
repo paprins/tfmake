@@ -56,7 +56,7 @@ tf_confirm: aws_account_info
 	fi
 
 update: ## Update terraform modules and providers
-	@terraform get -update=true 
+	@terraform init -upgrade=true -no-color
 
 select: tf_validate tf_init tf_workspace ## Select and initialize terraform workspace (aka 'stage')
 	@printf $(GREEN)"\n\n>>> Now using Terraform workspace '$(env)' on AWS account '$(AWS_ACCOUNT_ALIAS)' ...\n"$(WHITE)
@@ -69,11 +69,11 @@ plan: tf_validate tf_options tf_confirm ## Generate and show an execution plan
 	@terraform $@ $(TF_OPTIONS) $(args)
 
 apply: tf_validate tf_options tf_confirm ## Builds or changes infrastructure
-	@terraform $@ $(TF_OPTIONS) $(args)
+	@terraform $@ $(TF_OPTIONS) -no-color $(args)
 	@terraform output -no-color -json 2> /dev/null | jq 'with_entries(.value |= .value)' > tf.${env}.outputs.json
 
 destroy: tf_validate tf_options tf_confirm ## Destroy Terraform-managed infrastructure
-	@terraform $@ $(TF_OPTIONS) $(args)
+	@terraform $@ $(TF_OPTIONS) -no-color $(args)
 
 refresh: tf_validate tf_options tf_confirm ## Refresh terraform state
-	@terraform $@ $(TF_OPTIONS) $(args)
+	@terraform $@ $(TF_OPTIONS) -no-color $(args)

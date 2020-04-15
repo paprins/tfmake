@@ -32,6 +32,8 @@ Commands:
   init   Create configuration for provider.
 ```
 
+A warning will be shown when your `tfmake` is out-of-date. If you see one, please update: `pip install --upgrade tfmake` 
+
 ## Providers
 Currently, `tfmake` supports two providers: `aws` and `azure`. The default provider is `aws`. Depending on the selected provider, a different, provider specific, `Makefile` is used to wrap `terraform`. Here, the provider is selected by using the right command.
 

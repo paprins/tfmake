@@ -105,17 +105,18 @@ class DefaultCommandHandler(object):
             click.echo('no azure config found ... assuming you fixed it yourself')
             return
 
-        cred, subscription_id = get_azure_cli_credentials()
+        # cred, subscription_id = get_azure_cli_credentials()
 
-        click.echo(cred)
-        click.echo(subscription_id)
+        # click.echo(cred)
+        # click.echo(subscription_id)
 
-        # profile = get_client_from_cli_profile()
-        # credentials, current_sub, tenant = profile.get_login_credentials(subscription_id=_azure['subscription_id'])
+        from azure.common.credentials import get_cli_profile
+        profile = get_cli_profile()
+        credentials, current_sub, tenant = profile.get_login_credentials(subscription_id=_azure.get('subscription_id'))
 
-        # click.echo(credentials)
-        # click.echo(current_sub)
-        # click.echo('tenant: {}'.format(tenant))
+        click.echo(credentials)
+        click.echo(current_sub)
+        click.echo('tenant: {}'.format(tenant))
 
         return dict()
 
