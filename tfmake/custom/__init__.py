@@ -6,6 +6,9 @@ from functools import wraps
 import yaml
 import click
 
+from tfmake import __version__
+from outdated import check_outdated
+
 class DefaultCommandGroup(click.Group):
     '''
     Allow a default command for a group
@@ -39,6 +42,27 @@ class DefaultCommandGroup(click.Group):
             return super(
                 DefaultCommandGroup, self).resolve_command(ctx, args)
 
+def check_latest_version(f):
+    @wraps(f)
+    def wrapper(self, *args, **kw):
+        is_outdated = False
+        latest_version = __version__
+        try:
+            is_outdated, latest_version = check_outdated('tfmake', __version__)
+
+        except ValueError as e:
+            click.echo("\nYour version of tfmake is ahead of time! {}".format(str(e)))
+
+        if is_outdated:
+            _msg = '* Your version of tfmake is out of date! Your version is {}, the latest is {} *'.format(__version__, latest_version)
+            
+            click.echo('\n' + ('* ' * 43))
+            click.echo(_msg)
+            click.echo('* ' * 43)   
+
+        return f(self, *args, **kw)
+
+    return wrapper
 
 def before_and_after(f):
     @wraps(f)
@@ -50,6 +74,7 @@ def before_and_after(f):
             self.after()
         return result
     return wrapper
+
 class DefaultCommandHandler(object):
     def __init__(self, provider = None):
         self.config = None
@@ -71,10 +96,11 @@ class DefaultCommandHandler(object):
         if self.config:
             _provider = self.config.get('provider','aws').lower()
             if not self.provider == _provider:
-                raise click.ClickException("Hmmm ... you configured '{}' and you provided '{}' ... make up your mind!\n\n\n\n\n... please".format(_provider, self.provider))
+                raise click.ClickException("Hmmm ... you configured '{}' and you provided '{}' ... make up your mind!\n\n\n... please".format(_provider, self.provider))
 
+    @check_latest_version
     @before_and_after
-    def call(self, target, args):
+    def call(self, target, args, **kwargs):
         '''
         Call provider specific Makefile using target and (optional) args.
         '''
