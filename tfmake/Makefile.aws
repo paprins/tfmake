@@ -65,8 +65,6 @@ tf_confirm: aws_account_info
 
 update: ## Update terraform modules and providers
 	@terraform init -upgrade=true -no-color
-
-update_modules: ## Only update modules
 	@terraform get -update -no-color
 
 select: tf_validate tf_init tf_workspace ## Select and initialize terraform workspace (aka 'stage')
@@ -76,10 +74,10 @@ show: aws_account_info ## Show current terraform workspace
 	$(eval CURRENT_WORKSPACE=$(shell terraform workspace show))
 	@printf $(GREEN)"\nCurrently using Terraform workspace '$(CURRENT_WORKSPACE)' on AWS account '$(AWS_ACCOUNT_ALIAS)' ...\n"$(WHITE)
 
-plan: tf_validate tf_options update_modules tf_confirm ## Generate and show an execution plan
+plan: tf_validate tf_options tf_confirm ## Generate and show an execution plan
 	@terraform $@ $(TF_OPTIONS) $(args)
 
-apply: tf_validate tf_options update_modules tf_confirm ## Builds or changes infrastructure
+apply: tf_validate tf_options tf_confirm ## Builds or changes infrastructure
 	@terraform $@ $(TF_OPTIONS) -no-color $(args)
 	@terraform output -no-color -json 2> /dev/null | jq 'with_entries(.value |= .value)' > tf.${env}.outputs.json
 
