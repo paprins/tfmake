@@ -183,4 +183,26 @@ The `before` section can contain a list of commands that need to be executed pre
 
 The `after` section can contain a list of commands that you can use to cleanup after calling the `make` target.
 
+### Example
+
+> Azure
+
+The following example configuration creates an environment variable using a specified secret from a given key vault. Then, it will execute all `before` statements. Next it will just execute the `Makefile` target. And finally, it will execute all `after` statements.
+
+Please note that the `environment` variables will _not_ be exposed system-wide. They will only be 'visible' within the context of the session. As a result, `terraform` can use it, but when the process is done, the variable will no longer be available.
+
+```
+---
+provider: azure
+
+environment:
+    - ARM_ACCESS_KEY = $(az keyvault secret show --name YOUR_SECRET --vault-name YOUR_VAULT --query value -o tsv)
+
+before:
+    - echo $ARM_ACCESS_KEY
+
+after:
+    - echo "DONE!!"
+```
+
 ~ the end
