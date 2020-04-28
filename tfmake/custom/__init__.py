@@ -125,7 +125,7 @@ class DefaultCommandHandler(object):
         if not self.config: 
             return
 
-        for e in self.config.get('environment', []):
+        for e in self.config.get('environment', []) or []:
             k,v = map(str.strip, e.split('='))
             # Value 'v' could still contain hashtag to comment out rest of line
             v = v.split('#',1)[0]
@@ -144,7 +144,7 @@ class DefaultCommandHandler(object):
                 os.environ[k] = v
 
         # process pre actions
-        for pre in self.config.get('before', []):
+        for pre in self.config.get('before', []) or []:
             os.system(pre)
 
     def after(self):
@@ -154,5 +154,5 @@ class DefaultCommandHandler(object):
         if not self.config: 
             return
 
-        for post in self.config.get('after', []):
+        for post in self.config.get('after', []) or []:
             os.system(post)
