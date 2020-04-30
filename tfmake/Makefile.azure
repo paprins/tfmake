@@ -39,7 +39,7 @@ azure_info:
 	@if [[ -z "${ARM_SUBSCRIPTION_ID}" ]]; then echo "Not logged into Azure"; exit 1; fi;
 	$(eval ARM_ACCOUNT_ALIAS=$(shell az account show --query 'name' --output tsv))
 
-	@if [ ! -f terraform.tf ]; then echo "[ERROR] Expecting terraform.tf in directory '$(PWD)'"; exit 1; fi;
+	@if [ ! -f terraform.tf ]; then echo "[ERROR] directory '$(PWD)' does not contain a valid terraform project."; exit 1; fi;
 	$(eval CURRENT_TF_KEY=$(shell cat terraform.tf | grep key | sed 's/["[:space:]]//g' | cut -d "=" -f 2 | cut -d "#" -f 1))
 
 tf_init: azure_info

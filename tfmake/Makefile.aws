@@ -38,7 +38,7 @@ aws_account_info:
 	$(eval AWS_ACCOUNT_ID=$(shell aws sts get-caller-identity --output text --query 'Account'))
 	$(eval AWS_ACCOUNT_ALIAS=$(shell aws iam list-account-aliases --output text --query 'AccountAliases[*]'))
 	
-	@if [ ! -f terraform.tf ]; then echo "[ERROR] Expecting terraform.tf in directory '$(PWD)'"; exit 1; fi;
+	@if [ ! -f terraform.tf ]; then echo "[ERROR] directory '$(PWD)' does not contain a valid terraform project."; exit 1; fi;
 	$(eval CURRENT_TF_KEY=$(shell cat terraform.tf | grep key | sed 's/["[:space:]]//g' | cut -d "=" -f 2 | cut -d "#" -f 1))
 
 tf_init: aws_account_info

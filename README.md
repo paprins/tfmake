@@ -72,6 +72,30 @@ Note:
 
 > Use `tfmake azure help` to see the `azure` edition ...
 
+## Safeguarding Credentials
+> This works for both `AWS` and `Azure`
+
+Although, you have to provide the correct credentials yourself, `tfmake` _will_ check if the credentials you provide are expected.
+
+```
+$ cd /path/to/my/tf/project
+$ aws-vault exec ACCOUNT_ONE -- tfmake select env=dev
+Initializing modules...
+...
+>>> Now using Terraform workspace 'dev' on AWS account 'aws-account-one' ...
+```
+
+If you use different credentials the next time you use `tfmake` in this project, you'll see a warning. Press `<ENTER>` to abort (or `y` to continue).
+
+```
+$ cd /path/to/my/tf/project
+$ aws-vault exec ACCOUNT_TWO -- tfmake plan
+[WARNING] You previously used 'aws-account-one' for provider aws. Now you're using 'aws-account-two'. Are you sure? [y/N]:
+Aborted!
+```
+
+> The 'magic' behind all this is a cache stored in `$(PWD)/.tfmake/cache`. So, if you delete this file, this safeguard won't work anymore :(
+
 ## Final Notes
 
 By default, before any a `terraform` command is executed, you will be asked to confirm the usage of the current environment.

@@ -48,20 +48,37 @@ def aws(target, args):
 @click.argument('provider', default='aws')
 def init(provider):
     '''
-    Create configuration for provider.
+    Create configuration for provider (migrate if needed).
     '''
+    legacy = None
     cwd = os.path.join(os.getcwd(), '.tfmake')
     if os.path.isfile(cwd):
+        if click.confirm('Legacy configuration found! Do you want me to migrate?', default=True):
+            with open(cwd,'r') as f:
+                legacy = f.read()
+
+        os.rename(cwd, '{}.bkp'.format(cwd))
+
+    if not os.path.isdir(cwd):
+        os.mkdir(cwd)
+
+    config = os.path.join(cwd, "config")
+    if os.path.isfile(config):
         click.confirm('Existing configuration found! Do you want to continue?', abort=True)
 
-    # Get provider-specific template
-    # NOTE: this is for future use ... not used yet
+    # Get provider-specific template (this is for future use ... not used yet)
     template = env.get_template('tfmake.{}.j2'.format(provider))
 
-    with open(cwd, 'w+') as f:
-        f.write(template.render(provider=provider))
+    contents = legacy if legacy else template.render(provider=provider)
 
-    click.echo("\nConfiguration written to '{}'".format(cwd))
+    with open(config, 'w+') as f:
+        f.write(contents)
+
+    if legacy and os.path.isfile('{}.bkp'.format(cwd)):
+        if click.confirm('\n\nSuccessfully migrated configuration. Delete backup?', default=True):
+            os.remove('{}.bkp'.format(cwd))
+
+    click.echo("\nConfiguration written to '{}'".format(config))
 
 if __name__ == '__main__':
     main()

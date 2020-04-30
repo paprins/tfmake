@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+from enum import Enum
 import inspect
 from functools import wraps
 import yaml
@@ -8,6 +9,36 @@ import click
 
 from tfmake import __version__
 from outdated import check_outdated
+
+class Provider(Enum):
+    AWS   = 'aws'
+    AZURE = 'azure'
+
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_ 
+
+    @classmethod
+    def to_list(cls):
+        return cls._value2member_map_.keys()
+
+    @classmethod
+    def to_string(cls):
+        return ", ".join(cls._value2member_map_.keys())
+
+class Workspace(Enum):
+    DEV = 'dev'
+    TST = 'tst'
+    ACC = 'acc'
+    PRD = 'prd'
+
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_
+
+    @classmethod
+    def to_string(cls):
+        return ", ".join(cls._value2member_map_.keys())
 
 class DefaultCommandGroup(click.Group):
     '''
@@ -79,14 +110,23 @@ class DefaultCommandHandler(object):
     def __init__(self, provider = None):
         self.config = None
 
-        _c = os.path.join(os.getcwd(), '.tfmake')
+        base    = os.path.join(os.getcwd(), '.tfmake')
 
-        if os.path.isfile(_c):
-            with open(_c) as f:
+        if os.path.isfile(base):
+            raise click.ClickException("Legacy configuration found! Run 'tfmake init' first.")
+
+        if not os.path.isdir(base):
+            os.mkdir(base)
+
+        _config = os.path.join(base, 'config')
+        _cache  = os.path.join(base, 'cache')
+
+        if os.path.isfile(_config):
+            with open(_config, 'r') as f:
                 try:
                     self.config = yaml.safe_load(f)
                 except yaml.parser.ParserError:
-                    os.sys.exit('[ERROR] {} could not be parsed.'.format(_c))
+                    os.sys.exit('[ERROR] {} could not be parsed.'.format(_config))
 
         if not provider and self.config:
             self.provider = self.config.get('provider','aws').lower()
@@ -96,7 +136,86 @@ class DefaultCommandHandler(object):
         if self.config:
             _provider = self.config.get('provider','aws').lower()
             if not self.provider == _provider:
-                raise click.ClickException("Hmmm ... you configured '{}' and you provided '{}' ... make up your mind!\n\n\n... please".format(_provider, self.provider))
+                raise click.ClickException("hmmm ... you configured '{}' and provided '{}' ... make up your mind!\n\n\n... please".format(_provider, self.provider))
+
+        # Check if provider is valid
+        if not Provider.has_value(self.provider):
+            raise click.ClickException("Invalid provider '{}' (expecting: {})".format(self.provider, Provider.to_string()))
+
+        # Check cache
+        if os.path.isfile(_cache):
+            with open(_cache, 'r') as f:
+                try:
+                    self.cache = yaml.safe_load(f)
+                except yaml.parser.ParserError:
+                    os.sys.exit('[ERROR] {} could not be parsed.'.format(_cache))
+        else:
+            self.cache = dict()
+
+    def __get_environment(self, target, args=[]):
+        """
+        Get environment via 'select' target or terraform cli.
+        """
+        if target == "select":
+            _args = dict(item.split("=") for item in args) 
+            if 'env' in _args:
+                environment = _args.get('env')
+            else:
+                raise click.ClickException("target '{}' expects an argument 'env'.".format(target))
+        else:
+            try:
+                cmd = "terraform workspace show"
+                environment = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT, universal_newlines=True).strip()
+
+            except subprocess.CalledProcessError as e:
+                raise click.ClickException("error executing '{}': {}".format(cmd, str(e)))
+
+            except OSError as e:
+                raise click.ClickException("did you install terraform?")
+
+        if not Workspace.has_value(environment):
+            raise click.ClickException("environment '{}' is not supported (expecting: {})".format(environment, Workspace.to_string()))
+
+        return environment
+
+    def __get_account_alias(self):
+        """
+        Get provider account alias.
+        Using cli to avoid adding Python dependencies!
+        """
+        if Provider(self.provider) == Provider.AWS:
+            cmd = "aws iam list-account-aliases --query AccountAliases[*] --output text"
+        elif Provider(self.provider) == Provider.AZURE:
+            cmd = "az account show --query name --output tsv"
+
+        output = None
+
+        try:
+            output = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT, universal_newlines=True)
+
+        except subprocess.CalledProcessError as e:
+            raise click.ClickException("error fetching {} account alias. You sure you're using the correct credentials?".format(self.provider))
+
+        except OSError as e:
+            raise click.ClickException("error fetching account alias. Did you install the '{}' command-line interface?".format(self.provider))
+
+        return output.strip()
+
+    def __write_to_cache(self, k, v):
+        """
+        Writing cache to fs
+        """
+        self.cache[k] = v
+        _cache = os.path.join(os.getcwd(), '.tfmake', 'cache')
+
+        with open(_cache, 'w+') as f:
+            yaml.dump(self.cache, f, default_flow_style=False, explicit_start=True)
+
+    def __read_from_cache(self, k):
+        """
+        Get value from cache
+        """
+        return self.cache.get(k, None)
 
     @check_latest_version
     @before_and_after
@@ -112,10 +231,23 @@ class DefaultCommandHandler(object):
 
         _args = list(args)
 
+        env = self.__get_environment(target, args)
+        alias = self.__get_account_alias()
+
+        # read from cache
+        cached_alias = self.__read_from_cache(env)
+
+        if cached_alias and alias != cached_alias:
+            click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(cached_alias, self.provider, alias), abort=True)
+
         if len(_args) > 0:
             os.system("make -f {file} {target} {args}".format(file=makefile, target=target, args=' '.join(_args)))
         else:
             os.system("make -f {file} {target}".format(file=makefile, target=target))
+
+        # write to cache
+        self.__write_to_cache(env, alias)
+        
 
     def before(self):
         '''
@@ -138,7 +270,7 @@ class DefaultCommandHandler(object):
                     os.environ[k] = output
 
                 except subprocess.CalledProcessError as e:
-                    raise click.ClickException('Exception when executing command: "{}":\n\n{}'.format(cmd, e.output))
+                    raise click.ClickException('exception when executing command: "{}":\n\n{}'.format(cmd, e.output))
 
             else:
                 os.environ[k] = v
