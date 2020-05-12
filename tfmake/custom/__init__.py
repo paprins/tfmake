@@ -264,6 +264,7 @@ class DefaultCommandHandler(object):
         if not self.config: 
             return
 
+        # first, evaluate environment variables
         for e in self.config.get('environment', []) or []:
             k,v = map(str.strip, e.split('='))
             # Value 'v' could still contain hashtag to comment out rest of line
@@ -282,7 +283,7 @@ class DefaultCommandHandler(object):
             else:
                 os.environ[k] = v
 
-        # process pre actions
+        # next, run 'before' actions
         for pre in self.config.get('before', []) or []:
             os.system(pre)
 
@@ -293,5 +294,6 @@ class DefaultCommandHandler(object):
         if not self.config: 
             return
 
+        # run 'after' actions
         for post in self.config.get('after', []) or []:
             os.system(post)
