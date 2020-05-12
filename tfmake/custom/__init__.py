@@ -10,7 +10,10 @@ import click
 from tfmake import __version__
 from outdated import check_outdated
 
-class Provider(Enum):
+class PROVIDER(Enum):
+    """
+    Supporder providers.
+    """
     AWS   = 'aws'
     AZURE = 'azure'
 
@@ -26,7 +29,10 @@ class Provider(Enum):
     def to_string(cls):
         return ", ".join(cls._value2member_map_.keys())
 
-class Workspace(Enum):
+class WORKSPACE(Enum):
+    """
+    Supported workspaces/environments.
+    """
     DEV = 'dev'
     TST = 'tst'
     ACC = 'acc'
@@ -139,8 +145,8 @@ class DefaultCommandHandler(object):
                 raise click.ClickException("hmmm ... you configured '{}' and provided '{}' ... make up your mind!\n\n\n... please".format(_provider, self.provider))
 
         # Check if provider is valid
-        if not Provider.has_value(self.provider):
-            raise click.ClickException("Invalid provider '{}' (expecting: {})".format(self.provider, Provider.to_string()))
+        if not PROVIDER.has_value(self.provider):
+            raise click.ClickException("Invalid provider '{}' (expecting: {})".format(self.provider, PROVIDER.to_string()))
 
         # Check cache
         if os.path.isfile(_cache):
@@ -173,8 +179,8 @@ class DefaultCommandHandler(object):
             except OSError as e:
                 raise click.ClickException("did you install terraform?")
 
-        if not Workspace.has_value(environment):
-            raise click.ClickException("environment '{}' is not supported (expecting: {})".format(environment, Workspace.to_string()))
+        if not WORKSPACE.has_value(environment):
+            raise click.ClickException("environment '{}' is not supported (expecting: {})".format(environment, WORKSPACE.to_string()))
 
         return environment
 
@@ -183,9 +189,9 @@ class DefaultCommandHandler(object):
         Get provider account alias.
         Using cli to avoid adding Python dependencies!
         """
-        if Provider(self.provider) == Provider.AWS:
+        if PROVIDER(self.provider) == PROVIDER.AWS:
             cmd = "aws iam list-account-aliases --query AccountAliases[*] --output text"
-        elif Provider(self.provider) == Provider.AZURE:
+        elif PROVIDER(self.provider) == PROVIDER.AZURE:
             cmd = "az account show --query name --output tsv"
 
         output = None
