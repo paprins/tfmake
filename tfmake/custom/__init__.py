@@ -194,10 +194,11 @@ class DefaultCommandHandler(object):
             output = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT, universal_newlines=True)
 
         except subprocess.CalledProcessError as e:
-            raise click.ClickException("error fetching {} account alias. You sure you're using the correct credentials?".format(self.provider))
+            raise click.ClickException('error fetching {} account alias.\n{}'.format(self.provider, e.output))
+            
 
         except OSError as e:
-            raise click.ClickException("error fetching account alias. Did you install the '{}' command-line interface?".format(self.provider))
+            raise click.ClickException('error fetching {} account alias.\n{}'.format(self.provider, e.output))
 
         return output.strip()
 
@@ -270,7 +271,7 @@ class DefaultCommandHandler(object):
                     os.environ[k] = output
 
                 except subprocess.CalledProcessError as e:
-                    raise click.ClickException('exception when executing command: "{}":\n\n{}'.format(cmd, e.output))
+                    raise click.ClickException("exception executing '{}':\n\n{}".format(cmd, e.output))
 
             else:
                 os.environ[k] = v
