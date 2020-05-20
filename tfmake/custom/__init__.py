@@ -219,7 +219,8 @@ class DefaultCommandHandler(object):
         _cache = os.path.join(os.getcwd(), '.tfmake', 'cache')
 
         with open(_cache, 'w+') as f:
-            yaml.dump(self.cache, f, default_flow_style=False, explicit_start=True)
+            # yaml.dump(self.cache, f, default_flow_style=False, explicit_start=True)
+            yaml.safe_dump(self.cache, f, encoding='utf-8', allow_unicode=True)
 
     def __read_from_cache(self, k):
         """
@@ -239,9 +240,19 @@ class DefaultCommandHandler(object):
             click.echo("Makefile '{}' not found :(".format(makefile))
             os.sys.exit(1)
 
+        _args = list(args)
+
         # adding prefix '-' for each argument
         # why? because 'click' does _not_ allow a dash in front of an argument value (~ it thinks its an option)
-        _args = ['-' + arg for arg in list(args)] 
+        # 
+        # extra: _only_ when arguments are _not_ meant as terraform arguments (ugly ... i know)
+        if target in ['select']:
+            _args=' '.join(_args)
+        else:
+            if 'TFMAKE_APPROVE' in self.tfmake_env and not 'auto-approve' in _args:
+                _args.append('auto-approve')
+
+            _args = "args='{args}'".format(args=' '.join(['-' + arg for arg in _args]))
 
         env   = self.__get_environment(target, args)
         alias = self.__get_account_alias()
@@ -252,11 +263,8 @@ class DefaultCommandHandler(object):
         if cached_alias and alias != cached_alias:
             click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(cached_alias, self.provider, alias), abort=True)
 
-        if 'TFMAKE_APPROVE' in self.tfmake_env and not '-auto-approve' in _args:
-            _args.append('-auto-approve')
-
         if len(_args) > 0:
-            os.system("make -f {file} {target} args='{args}'".format(file=makefile, target=target, args=' '.join(_args)))
+            os.system("make -f {file} {target} {args}".format(file=makefile, target=target, args=_args))
         else:
             os.system("make -f {file} {target}".format(file=makefile, target=target))
 
