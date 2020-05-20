@@ -116,7 +116,10 @@ class DefaultCommandHandler(object):
     def __init__(self, provider = None):
         self.config = None
 
-        base    = os.path.join(os.getcwd(), '.tfmake')
+        # filter os.environ for TFMAKE variables
+        self.tfmake_env = {key: value for key, value in os.environ.items() if key.startswith('TFMAKE_')}
+
+        base = os.path.join(os.getcwd(), '.tfmake')
 
         if os.path.isfile(base):
             raise click.ClickException("Legacy configuration found! Run 'tfmake init' first.")
@@ -236,9 +239,11 @@ class DefaultCommandHandler(object):
             click.echo("Makefile '{}' not found :(".format(makefile))
             os.sys.exit(1)
 
-        _args = list(args)
+        # adding prefix '-' for each argument
+        # why? because 'click' does _not_ allow a dash in front of an argument value (~ it thinks its an option)
+        _args = ['-' + arg for arg in list(args)] 
 
-        env = self.__get_environment(target, args)
+        env   = self.__get_environment(target, args)
         alias = self.__get_account_alias()
 
         # read from cache
@@ -247,8 +252,11 @@ class DefaultCommandHandler(object):
         if cached_alias and alias != cached_alias:
             click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(cached_alias, self.provider, alias), abort=True)
 
+        if 'TFMAKE_APPROVE' in self.tfmake_env and not '-auto-approve' in _args:
+            _args.append('-auto-approve')
+
         if len(_args) > 0:
-            os.system("make -f {file} {target} {args}".format(file=makefile, target=target, args=' '.join(_args)))
+            os.system("make -f {file} {target} args='{args}'".format(file=makefile, target=target, args=' '.join(_args)))
         else:
             os.system("make -f {file} {target}".format(file=makefile, target=target))
 

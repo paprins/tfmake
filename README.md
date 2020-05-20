@@ -1,5 +1,7 @@
 # tfmake
 
+## Hello ! 👋
+
 This is a Python based wrapper around an opionated `Makefile` I use for multi-cloud/cross-account `terraform` projects. 
 
 You still need `make`, though. The main advantage is that you don't have to copy the `Makefile`. 
@@ -139,10 +141,14 @@ $ tfmake azure apply
 
 > Apply changes ... automagically
 ```
-$ aws-vault exec foobar -- tfmake apply args='-no-color -auto-approve'
+$ aws-vault exec foobar -- tfmake apply input=false no-color auto-approve'
 ```
 
-**Note**: the `args` parameter can be used for arbitrary Terraform arguments.
+**Note**: you can use arbitrary Terraform arguments after the command you're executing (~ in this example: `apply`). So, in this example, `input=false no-color auto-approve` will be used to create the following `terraform` arguments: `-input=false -no-color -auto-approve`.
+
+Notice that you have to skip the dash in front of each argument.
+
+**Another Note**: :arrow_up ... this only applies when using `tfmake` ... if, for whatever reason, you choose to use the `Makefile` directly: run `make help`
 
 ## Advanced Usage
 
