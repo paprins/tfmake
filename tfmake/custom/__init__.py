@@ -182,7 +182,7 @@ class DefaultCommandHandler(object):
             except OSError as e:
                 raise click.ClickException("did you install terraform?")
 
-        if not WORKSPACE.has_value(environment):
+        if target not in ['help'] and not WORKSPACE.has_value(environment):
             raise click.ClickException("environment '{}' is not supported (expecting: {})".format(environment, WORKSPACE.to_string()))
 
         return environment
@@ -246,7 +246,7 @@ class DefaultCommandHandler(object):
         # why? because 'click' does _not_ allow a dash in front of an argument value (~ it thinks its an option)
         # 
         # extra: _only_ when arguments are _not_ meant as terraform arguments (ugly ... i know)
-        if target in ['select']:
+        if target in ['select', 'import']:
             _args=' '.join(_args)
         else:
             if 'TFMAKE_APPROVE' in self.tfmake_env and not 'auto-approve' in _args:

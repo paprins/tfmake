@@ -86,3 +86,6 @@ destroy: tf_validate tf_options tf_confirm ## Destroy Terraform-managed infrastr
 
 refresh: tf_validate tf_options tf_confirm ## Refresh terraform state
 	@terraform $@ $(TF_OPTIONS) -no-color $(args)
+
+import: tf_validate tf_options tf_confirm ## Import existing infrastructure into your Terraform state
+	@terraform $@ $(TF_OPTIONS) -no-color $(args)

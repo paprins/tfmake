@@ -65,6 +65,7 @@ Where:
     apply                           Builds or changes infrastructure
     destroy                         Destroy Terraform-managed infrastructure
     refresh                         Refresh terraform state
+    import                          Import existing infrastructure into your Terraform state
 
 Note:
 
