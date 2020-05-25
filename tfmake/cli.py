@@ -20,29 +20,32 @@ def main():
 @main.command(name='azure')
 @click.argument('target', default='help')
 @click.argument('args', nargs=-1)
-def azure(target, args):
+@click.option('--dry-run', is_flag=True, default=False)
+def azure(target, args, dry_run):
     '''
     Use Azure provider
     '''
-    DefaultCommandHandler('azure').call(target, args)
+    DefaultCommandHandler('azure').call(target, args, dry_run)
 
 @main.command(name='guess', default_command=True)
 @click.argument('target', default='help')
 @click.argument('args', nargs=-1)
-def guess(target, args):
+@click.option('--dry-run', is_flag=True, default=False)
+def guess(target, args, dry_run):
     '''
     Default command that guesses what provider you're using.
     '''
-    DefaultCommandHandler().call(target, args)
+    DefaultCommandHandler().call(target, args, dry_run)
 
 @main.command(name='aws')
 @click.argument('target', default='help')
 @click.argument('args', nargs=-1)
-def aws(target, args):
+@click.option('--dry-run', is_flag=True, default=False)
+def aws(target, args, dry_run):
     '''
     Use AWS provider.
     '''
-    DefaultCommandHandler('aws').call(target, args)
+    DefaultCommandHandler('aws').call(target, args, dry_run)
 
 @main.command()
 @click.argument('provider', default='aws')

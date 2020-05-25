@@ -230,7 +230,7 @@ class DefaultCommandHandler(object):
 
     @check_latest_version
     @before_and_after
-    def call(self, target, args, **kwargs):
+    def call(self, target, args, dry_run, **kwargs):
         '''
         Call provider specific Makefile using target and (optional) args.
         '''
@@ -264,9 +264,15 @@ class DefaultCommandHandler(object):
             click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(cached_alias, self.provider, alias), abort=True)
 
         if len(_args) > 0:
-            os.system("make -f {file} {target} {args}".format(file=makefile, target=target, args=_args))
+            if not dry_run:
+                os.system("make -f {file} {target} {args}".format(file=makefile, target=target, args=_args))
+            else:
+                click.echo("make -f {file} {target} {args}".format(file=makefile, target=target, args=_args))
         else:
-            os.system("make -f {file} {target}".format(file=makefile, target=target))
+            if not dry_run:
+                os.system("make -f {file} {target}".format(file=makefile, target=target))
+            else:
+                click.echo("make -f {file} {target}".format(file=makefile, target=target))
 
         # write to cache
         self.__write_to_cache(env, alias)
