@@ -45,8 +45,8 @@ azure_info:
 tf_init: azure_info
 	@if [ -e .terraform/environment ]; then rm .terraform/environment; fi;
 	@if [ -e .terraform/terraform.tfstate ]; then rm .terraform/terraform.tfstate; fi;
-	
-	@terraform init -backend-config 'key=$(ARM_ACCOUNT_ALIAS)/$(CURRENT_TF_KEY)'
+
+	@if [ ! -z $$TFMAKE_KEY_PREFIX ]; then terraform init -backend-config 'key=$(ARM_ACCOUNT_ALIAS)/$(TFMAKE_KEY_PREFIX)/$(CURRENT_TF_KEY)'; else terraform init -backend-config 'key=$(ARM_ACCOUNT_ALIAS)/$(CURRENT_TF_KEY)'; fi;
 
 tf_options:
 	$(if $(wildcard vars/$(env).tfvars), $(eval TF_OPTIONS := $(TF_OPTIONS) -var-file "vars/$(env).tfvars"))

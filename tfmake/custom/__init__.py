@@ -182,7 +182,7 @@ class DefaultCommandHandler(object):
             except OSError as e:
                 raise click.ClickException("did you install terraform?")
 
-        if target not in ['help'] and not WORKSPACE.has_value(environment):
+        if target not in ['help','foo'] and not WORKSPACE.has_value(environment):
             raise click.ClickException("environment '{}' is not supported (expecting: {})".format(environment, WORKSPACE.to_string()))
 
         return environment
@@ -230,7 +230,7 @@ class DefaultCommandHandler(object):
 
     @check_latest_version
     @before_and_after
-    def call(self, target, args, dry_run, **kwargs):
+    def call(self, target, args, dry_run, workspace_key_prefix, **kwargs):
         '''
         Call provider specific Makefile using target and (optional) args.
         '''
@@ -262,6 +262,9 @@ class DefaultCommandHandler(object):
 
         if cached_alias and alias != cached_alias:
             click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(cached_alias, self.provider, alias), abort=True)
+
+        if workspace_key_prefix:
+            os.environ['TFMAKE_KEY_PREFIX'] = workspace_key_prefix
 
         if len(_args) > 0:
             if not dry_run:

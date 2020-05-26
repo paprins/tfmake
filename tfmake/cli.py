@@ -21,31 +21,34 @@ def main():
 @click.argument('target', default='help')
 @click.argument('args', nargs=-1)
 @click.option('--dry-run', is_flag=True, default=False)
-def azure(target, args, dry_run):
+@click.option('--workspace-key-prefix')
+def azure(target, args, dry_run, workspace_key_prefix):
     '''
     Use Azure provider
     '''
-    DefaultCommandHandler('azure').call(target, args, dry_run)
+    DefaultCommandHandler('azure').call(target, args, dry_run, workspace_key_prefix)
 
 @main.command(name='guess', default_command=True)
 @click.argument('target', default='help')
 @click.argument('args', nargs=-1)
 @click.option('--dry-run', is_flag=True, default=False)
-def guess(target, args, dry_run):
+@click.option('--workspace-key-prefix')
+def guess(target, args, dry_run, workspace_key_prefix):
     '''
     Default command that guesses what provider you're using.
     '''
-    DefaultCommandHandler().call(target, args, dry_run)
+    DefaultCommandHandler().call(target, args, dry_run, workspace_key_prefix)
 
 @main.command(name='aws')
 @click.argument('target', default='help')
 @click.argument('args', nargs=-1)
 @click.option('--dry-run', is_flag=True, default=False)
-def aws(target, args, dry_run):
+@click.option('--workspace-key-prefix')
+def aws(target, args, dry_run, workspace_key_prefix):
     '''
     Use AWS provider.
     '''
-    DefaultCommandHandler('aws').call(target, args, dry_run)
+    DefaultCommandHandler('aws').call(target, args, dry_run, workspace_key_prefix)
 
 @main.command()
 @click.argument('provider', default='aws')
