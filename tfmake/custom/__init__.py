@@ -249,7 +249,7 @@ class DefaultCommandHandler(object):
         if target in ['select', 'import']:
             _args=' '.join(_args)
         else:
-            if 'TFMAKE_APPROVE' in self.tfmake_env and not 'auto-approve' in _args:
+            if 'TFMAKE_APPROVE' in self.tfmake_env and target in ['apply','destroy'] and not 'auto-approve' in _args:
                 _args.append('auto-approve')
 
             _args = "args='{args}'".format(args=' '.join(['-' + arg for arg in _args]))
@@ -260,7 +260,8 @@ class DefaultCommandHandler(object):
         # read from cache
         cached_alias = self.__read_from_cache(env)
 
-        if cached_alias and alias != cached_alias:
+        # besides checking if alias has changed, also check if on Gitlab Runner (if so, don't ask to confirm)
+        if cached_alias and alias != cached_alias and 'CI_JOB_ID' not in os.environ:
             click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(cached_alias, self.provider, alias), abort=True)
 
         if workspace_key_prefix:

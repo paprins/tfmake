@@ -46,7 +46,13 @@ tf_init: azure_info
 	@if [ -e .terraform/environment ]; then rm .terraform/environment; fi;
 	@if [ -e .terraform/terraform.tfstate ]; then rm .terraform/terraform.tfstate; fi;
 
-	@if [ ! -z $$TFMAKE_KEY_PREFIX ]; then terraform init -backend-config 'key=$(ARM_ACCOUNT_ALIAS)/$(TFMAKE_KEY_PREFIX)/$(CURRENT_TF_KEY)'; else terraform init -backend-config 'key=$(ARM_ACCOUNT_ALIAS)/$(CURRENT_TF_KEY)'; fi;
+ifdef TFMAKE_KEY_PREFIX
+	$(eval TF_KEY=$(ARM_ACCOUNT_ALIAS)/$(TFMAKE_KEY_PREFIX)/$(CURRENT_TF_KEY))
+else
+	$(eval TF_KEY=$(ARM_ACCOUNT_ALIAS)/$(CURRENT_TF_KEY))
+endif
+
+	@terraform init -backend-config 'key=$(TF_KEY)'
 
 tf_options:
 	$(if $(wildcard vars/$(env).tfvars), $(eval TF_OPTIONS := $(TF_OPTIONS) -var-file "vars/$(env).tfvars"))
@@ -55,10 +61,12 @@ tf_workspace:
 	@terraform workspace select $(env) 2> /dev/null || terraform workspace new $(env)
 
 tf_confirm: azure_info
+	$(eval TF_KEY=$(shell cat .terraform/terraform.tfstate | jq '.backend.config.key'))
+	
 	@printf "\nUsing the following details:\n\n"
 	@printf " - workspace: $(env)\n"
 	@printf " - account: $(ARM_ACCOUNT_ALIAS)\n"
-	@printf " - key: $(ARM_ACCOUNT_ALIAS)/$(CURRENT_TF_KEY)\n\n"
+	@printf " - key: $(TF_KEY)\n\n"
 
 	@if [ -z $$TFMAKE_AGREE ]; then \
 		echo "Press [ENTER] to continue or [CTRL-C] to stop." && read INPUT; \
