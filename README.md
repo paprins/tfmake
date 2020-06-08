@@ -53,7 +53,7 @@ For, `aws`, I use [`aws-vault`](https://github.com/99designs/aws-vault). For `az
 $ tfmake help
 The AWS Edition
 
-Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)
+Usage: make <TARGET> (env=<ENVIRONMENT>) (<TERRAFORM ARGUMENTS>)
 
 Where:
  ENVIRONMENT is one of ['dev','tst','acc','prd']
@@ -70,7 +70,7 @@ Where:
 Note:
 
  parameter 'env' is only required when selecting an environment
- parameter 'args' can be used to pass terraform understandable arguments. Example: "make apply args='-input=false -no-color -auto-approve'"
+ '<TERRAFORM ARGUMENTS>' can be used to pass terraform understandable arguments. Example: "make apply input=false no-color auto-approve". <- no dashes
 ```
 
 > Use `tfmake azure help` to see the `azure` edition ...
@@ -127,9 +127,19 @@ $ aws-vault exec foobar -- tfmake select env=dev
 $ aws-vault exec foobar -- tfmake plan
 ```
 
+> Plan changes with plan file
+```
+$ aws-vault exec foobar -- tfmake plan out=foobar.plan
+```
+
 > Apply changes
 ```
 $ aws-vault exec foobar -- tfmake apply
+```
+
+> Apply changes using plan file
+```
+$ aws-vault exec foobar -- tfmake apply input=false auto-approve foobar.plan
 ```
 
 > Apply changes using the `azure` provider

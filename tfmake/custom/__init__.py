@@ -252,7 +252,16 @@ class DefaultCommandHandler(object):
             if 'TFMAKE_APPROVE' in self.tfmake_env and target in ['apply','destroy'] and not 'auto-approve' in _args:
                 _args.append('auto-approve')
 
-            _args = "args='{args}'".format(args=' '.join(['-' + arg for arg in _args]))
+            # TODO: handle 'terraform plan' files in a better way ... this is f*cking ugly
+            ## @START::ugly
+            for arg in _args:
+                if arg.endswith('.plan'):
+                    # move '.plan' to last in list
+                    _args.append(_args.pop(_args.index(arg)))
+
+            # prepare terraform arguments: making sure that 'plan' files are not prefixed with a dash (~ `-`)
+            _args = "args='{args}'".format(args=' '.join(['-' + arg if not arg.endswith('.plan') or '=' in arg else arg for arg in _args]))
+            ## @END::ugly
 
         env   = self.__get_environment(target, args)
         alias = self.__get_account_alias()
