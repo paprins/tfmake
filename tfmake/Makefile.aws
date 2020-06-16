@@ -16,14 +16,14 @@ all: check_prerequisites
 
 help:
 	@printf "\nThe AWS Edition\n\n"
-	@printf "Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)\n\n"
+	@printf "Usage: make <TARGET> (env=<ENVIRONMENT>) (<TERRAFORM ARGUMENTS>)\n\n"
 	@printf "Where:\n"
 	@printf " ENVIRONMENT is one of ['dev','tst','acc','prd']\n"
 	@printf " TARGET is one:\n"
 	@awk -F ':|##' '/^[^\t].+?:.*?##/ {printf "\033[36m    %-30s\033[0m %s\n", $$1, $$NF }' $(MAKEFILE_LIST)
 	@printf "\nNote:\n\n"
-	@printf " parameter 'env' is only required when selecting an environment\n"
-	@printf " parameter 'args' can be used to pass terraform understandable arguments. Example: \"make apply args='-input=false -no-color -auto-approve'\"\n"
+	@printf " - parameter 'env' is only required when selecting an environment\n"
+	@printf " - <TERRAFORM ARGUMENTS> can be used to pass arbitrary terraform parameters (without a prefix dash). Example: \"make apply input=false no-color auto-approve\"\n"
 
 check_prerequisites:
 K := $(foreach bin,$(REQUIRED_BINS), \
@@ -60,7 +60,7 @@ tf_workspace:
 	@terraform workspace select $(env) 2> /dev/null || terraform workspace new $(env)
 
 tf_confirm: aws_account_info
-	$(eval TF_KEY=$(shell cat .terraform/terraform.tfstate | jq '.backend.config.workspace_key_prefix + "/" + .backend.config.key'))
+	$(eval TF_KEY=$(shell cat .terraform/terraform.tfstate | jq '.backend.config.workspace_key_prefix + "/${env}" + "/" + .backend.config.key'))
 
 	@printf "\nUsing the following details:\n\n"
 	@printf " - workspace: $(env)\n"
