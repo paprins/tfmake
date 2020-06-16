@@ -69,11 +69,39 @@ Where:
 
 Note:
 
- parameter 'env' is only required when selecting an environment
- '<TERRAFORM ARGUMENTS>' can be used to pass terraform understandable arguments. Example: "make apply input=false no-color auto-approve". <- no dashes
+ - parameter 'env' is only required when selecting an environment
+ - <TERRAFORM ARGUMENTS> can be used to pass arbitrary terraform parameters (without a prefix dash). Example: "make apply input=false no-color auto-approve"
 ```
 
 > Use `tfmake azure help` to see the `azure` edition ...
+
+## Workspace Prefix
+
+When selecting an environment, by default, the following naming convention is used to store the `terraform` state:
+
+```
+<ACCOUNT_ALIAS>/<TERRAFORM_S3_KEY>
+```
+
+Where:
+* `ACCOUNT_ALIAS` is the alias of the account you're using (either: AWS or Azure)
+* `TERRAFORM_S3_KEY` is the value of the `key` in `terraform.tf`
+
+If you want something in-between the alias and the key, you can use the 'workspace prefix' like this:
+> Only needed when using the `select` command!
+
+```
+$ aws-vault exec my-aws-account -- tfmake select env=dev --workspace-key-prefix foo/bar
+```
+
+After you `select`ed the environment, the path to your `terraform` state is:
+
+```
+<ACCOUNT_ALIAS>/<WORKSPACE_PREFIX>/<TERRAFORM_S3_KEY>
+```
+
+Assuming the `key` value is `whatever/terraform.tfstate`, this leads to: `my-aws-account/foo/bar/whatever/terraform.tfstate`
+
 
 ## Safeguarding Credentials
 > This works for both `AWS` and `Azure`
