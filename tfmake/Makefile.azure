@@ -64,6 +64,7 @@ tf_confirm: azure_info
 	$(eval TF_KEY=$(shell cat .terraform/terraform.tfstate | jq '.backend.config.key'))
 	
 	@printf "\nUsing the following details:\n\n"
+	@printf " - cloud: Azure\n"
 	@printf " - workspace: $(env)\n"
 	@printf " - account: $(ARM_ACCOUNT_ALIAS)\n"
 	@printf " - key: $(TF_KEY)\n\n"

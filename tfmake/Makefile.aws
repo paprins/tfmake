@@ -63,6 +63,7 @@ tf_confirm: aws_account_info
 	$(eval TF_KEY=$(shell cat .terraform/terraform.tfstate | jq '.backend.config.workspace_key_prefix + "/${env}" + "/" + .backend.config.key'))
 
 	@printf "\nUsing the following details:\n\n"
+	@printf " - cloud: AWS\n"
 	@printf " - workspace: $(env)\n"
 	@printf " - account: $(AWS_ACCOUNT_ALIAS)\n"
 	@printf " - key: $(TF_KEY)\n\n"
