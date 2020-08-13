@@ -16,8 +16,7 @@ provider: {{provider}}
 # - commands should be between $( and )
 #
 # environment:
-#    - variable1 = value
-#    - variable2 = $(command)
+#    - ARM_ACCESS_KEY = $(az keyvault secret show --name YOUR_SECRET --vault-name YOUR_VAULT --query value -o tsv)
 
 # You can define commands here that are executed _before_ the Make target
 # Note: dont use single quotes (sorry)

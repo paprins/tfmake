@@ -1,3 +1,6 @@
+.ONESHELL:
+SHELL := bash
+
 .PHONY := all tf_init tf_workspace tf_options tf_confirm aws_account_info
 .DEFAULT_GOAL := help
 
@@ -9,8 +12,6 @@ WHITE := '\033[0;37m'
 BLUE  := '\033[0;34m'
 GREEN := '\033[0;32m'
 RED   := '\033[0;31m'
-
-SHELL := '/bin/bash'
 
 all: check_prerequisites
 
@@ -87,7 +88,12 @@ plan: tf_validate tf_options tf_confirm ## Generate and show an execution plan
 	@terraform $@ $(TF_OPTIONS) $(args)
 
 apply: tf_validate tf_options tf_confirm ## Builds or changes infrastructure
-	@terraform $@ $(TF_OPTIONS) -no-color $(args)
+	@terraform $@ $(TF_OPTIONS) -no-color $(args) ; \
+	retVal=$$?; \
+	if [ $$retVal -ne 0 ]; then \
+		echo "terraform failed with status $$retVal"; \
+		exit 1; \
+	fi
 	@terraform output -no-color -json 2> /dev/null | jq 'with_entries(.value |= .value)' > tf.${env}.outputs.json
 
 destroy: tf_validate tf_options tf_confirm ## Destroy Terraform-managed infrastructure
