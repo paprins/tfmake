@@ -105,10 +105,10 @@ def before_and_after(f):
     @wraps(f)
     def wrapper(self, *args, **kw):
         if hasattr(self, 'before') and inspect.ismethod(self.before):
-            self.before()
-        result = f(self, *args, **kw)
+            self.before(*args)
+        result = f(self, *args)
         if hasattr(self, 'after') and inspect.ismethod(self.after):
-            self.after()
+            self.after(*args, **kw)
         return result
     return wrapper
 
@@ -266,12 +266,12 @@ class DefaultCommandHandler(object):
         env   = self.__get_environment(target, args)
         alias = self.__get_account_alias()
 
-        # read from cache
-        cached_alias = self.__read_from_cache(env)
+        # # read from cache
+        # cached_alias = self.__read_from_cache(env)
 
-        # besides checking if alias has changed, also check if on Gitlab Runner (if so, don't ask to confirm)
-        if cached_alias and alias != cached_alias and 'CI_JOB_ID' not in os.environ:
-            click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(cached_alias, self.provider, alias), abort=True)
+        # # besides checking if alias has changed, also check if on Gitlab Runner (if so, don't ask to confirm)
+        # if cached_alias and alias != cached_alias and 'CI_JOB_ID' not in os.environ:
+        #     click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(cached_alias, self.provider, alias), abort=True)
 
         if workspace_key_prefix:
             os.environ['TFMAKE_KEY_PREFIX'] = workspace_key_prefix
@@ -291,13 +291,41 @@ class DefaultCommandHandler(object):
         self.__write_to_cache(env, alias)
         
 
-    def before(self):
+    def before(self, target, args, dry_run, workspace_key_prefix):
         '''
         Uses configuration to 'prepare' call to Makefile by setting environment variables and 
         executing arbitrary commands.
         '''
         if not self.config: 
             return
+
+        # when auto-switch enabled, switch to target Azure subscription using 'azctx'
+        env          = self.__get_environment(target, args)
+        alias        = self.__get_account_alias()
+        cached_alias = self.__read_from_cache(env)
+
+        if self.config.get('auto_switch', False):
+            if cached_alias and PROVIDER(self.provider) == PROVIDER.AZURE:
+                try:
+                    from shutil import which
+                    import subprocess
+                    # First, check if 'azctx' is installed
+                    azctx = which('xazctx')
+                    if azctx is not None and self.__get_account_alias() != cached_alias:
+                        p = subprocess.run("{} '{}'".format(azctx, cached_alias), 
+                            shell              = True,
+                            universal_newlines = True,
+                            capture_output     = True,
+                            text               = True
+                        )
+                        if p.returncode != 0:
+                            raise Exception(p.stderr)
+
+                except Exception as e:
+                    raise click.ClickException("switching to Azure subscription '{}': {}".format(cached_alias, str(e)))
+        elif cached_alias and alias != cached_alias and 'CI_JOB_ID' not in os.environ:
+            # besides checking if alias has changed, also check if on Gitlab Runner (if so, don't ask to confirm)
+            click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(cached_alias, self.provider, alias), abort=True)
 
         # first, evaluate environment variables
         for e in self.config.get('environment', []) or []:
@@ -322,12 +350,31 @@ class DefaultCommandHandler(object):
         for pre in self.config.get('before', []) or []:
             os.system(pre)
 
-    def after(self):
+    def after(self, target, args, dry_run, workspace_key_prefix):
         '''
         Uses configuration to 'cleanup' after call to Makefile by executing arbitrary commands.
         '''
         if not self.config: 
             return
+
+        if self.config.get('auto_switch', False) and PROVIDER(self.provider) == PROVIDER.AZURE:
+            # When auto-switch enabled, switch back using 'azctx'
+            try:
+                from shutil import which
+                azctx = which('azctx')
+                if azctx is not None:
+                    p = subprocess.run('{} -'.format(azctx), 
+                        shell              = True,
+                        universal_newlines = True,
+                        capture_output     = True,
+                        text               = True
+                    )
+
+                    if p.returncode != 0:
+                        raise Exception(p.stderr)
+
+            except Exception as e:
+                raise click.ClickException('switching to previous Azure subscription: {}'.format(str(e)))
 
         # run 'after' actions
         for post in self.config.get('after', []) or []:

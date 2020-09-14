@@ -127,6 +127,22 @@ Aborted!
 
 > The 'magic' behind all this is a cache stored in `$(PWD)/.tfmake/cache`. So, if you delete this file, this safeguard won't work anymore :(
 
+## Auto-switching Credentials on Azure
+
+When you're using `Azure` _and_ installed [`azctx`](https://github.com/StiviiK/azctx), `tfmake` will use the cached credentials to automatically switch to the correct subscription.
+
+In your `.tfmake/config`, make sure you enabled `auto_switching`:
+```
+---
+provider: azure
+auto_switch: True
+
+environment:
+  - ARM_ACCESS_KEY = $(az keyvault secret show --name YOUR_SECRET --vault-name YOUR_VAULT --query value -o tsv)
+```
+
+> Support for `AWS` will follow in a future version of `tfmake`
+
 ## Final Notes
 
 By default, before any a `terraform` command is executed, you will be asked to confirm the usage of the current environment.
