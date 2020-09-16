@@ -88,14 +88,14 @@ def check_latest_version(f):
             is_outdated, latest_version = check_outdated('tfmake', __version__)
 
         except ValueError as e:
-            click.echo("\nYour version of tfmake is ahead of time! {}".format(str(e)))
+            click.secho("\nYour version of tfmake is ahead of time! {}".format(str(e)), bold=True)
 
         if is_outdated:
             _msg = '* Your version of tfmake is out of date! Your version is {}, the latest is {} *'.format(__version__, latest_version)
             
-            click.echo('\n' + ('* ' * 43))
-            click.echo(_msg)
-            click.echo('* ' * 43)   
+            click.secho('\n' + ('* ' * 43), bold=True)
+            click.secho(_msg, bold=True)
+            click.secho('* ' * 43, bold=True)
 
         return f(self, *args, **kw)
 
@@ -237,7 +237,7 @@ class DefaultCommandHandler(object):
         makefile = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Makefile.{}'.format(self.provider))
 
         if not os.path.isfile(makefile):
-            click.echo("Makefile '{}' not found :(".format(makefile))
+            click.secho("Makefile '{}' not found :(".format(makefile), fg='red', bold=True)
             os.sys.exit(1)
 
         _args = list(args)
@@ -304,13 +304,13 @@ class DefaultCommandHandler(object):
         alias        = self.__get_account_alias()
         cached_alias = self.__read_from_cache(env)
 
-        if self.config.get('auto_switch', False):
-            if cached_alias and PROVIDER(self.provider) == PROVIDER.AZURE:
+        if self.config.get('auto_switch', False) and PROVIDER(self.provider) == PROVIDER.AZURE:
+            click.secho('AutoSwitch enabled for Azure subscriptions (using cached subscription for {} environment)'.format(env), bold=True)
+            if cached_alias:
                 try:
                     from shutil import which
-                    import subprocess
                     # First, check if 'azctx' is installed
-                    azctx = which('xazctx')
+                    azctx = which('azctx')
                     if azctx is not None and self.__get_account_alias() != cached_alias:
                         p = subprocess.run("{} '{}'".format(azctx, cached_alias), 
                             shell              = True,
@@ -318,7 +318,9 @@ class DefaultCommandHandler(object):
                             capture_output     = True,
                             text               = True
                         )
-                        if p.returncode != 0:
+                        if p.returncode == 0:
+                            click.echo(p.stdout)
+                        else:
                             raise Exception(p.stderr)
 
                 except Exception as e:
@@ -369,8 +371,9 @@ class DefaultCommandHandler(object):
                         capture_output     = True,
                         text               = True
                     )
-
-                    if p.returncode != 0:
+                    if p.returncode == 0:
+                        click.echo(p.stdout)
+                    else:
                         raise Exception(p.stderr)
 
             except Exception as e:
