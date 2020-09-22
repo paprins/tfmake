@@ -114,7 +114,8 @@ def before_and_after(f):
 
 class DefaultCommandHandler(object):
     def __init__(self, provider = None):
-        self.config = None
+        self.config   = None
+        self.switched = False
 
         # filter os.environ for TFMAKE variables
         self.tfmake_env = {key: value for key, value in os.environ.items() if key.startswith('TFMAKE_')}
@@ -318,7 +319,8 @@ class DefaultCommandHandler(object):
                             capture_output     = True,
                             text               = True
                         )
-                        if p.returncode == 0:
+                        self.switched = (p.returncode == 0)
+                        if self.switched:
                             click.echo(p.stdout)
                         else:
                             raise Exception(p.stderr)
@@ -359,8 +361,8 @@ class DefaultCommandHandler(object):
         if not self.config: 
             return
 
-        if self.config.get('auto_switch', False) and PROVIDER(self.provider) == PROVIDER.AZURE:
-            # When auto-switch enabled, switch back using 'azctx'
+        if self.switched and PROVIDER(self.provider) == PROVIDER.AZURE:
+            # When auto-switch enabled (~ and we actually switched), switch back using 'azctx'
             try:
                 from shutil import which
                 azctx = which('azctx')
