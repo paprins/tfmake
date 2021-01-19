@@ -4,6 +4,8 @@
 
 ### Custom ###
 .tfmake
+sandbox/
+.venv
 
 ### macOS ###
 # General
