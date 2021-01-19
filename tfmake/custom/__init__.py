@@ -52,6 +52,9 @@ class DefaultCommandGroup(click.Group):
     '''
 
     def command(self, *args, **kwargs):
+        """
+        Extension of default 'click' behavior: run 'default' command if no command is available.
+        """
         default_command = kwargs.pop('default_command', False)
         if default_command and not args:
             kwargs['name'] = kwargs.get('name', '<>')
@@ -80,6 +83,9 @@ class DefaultCommandGroup(click.Group):
                 DefaultCommandGroup, self).resolve_command(ctx, args)
 
 def check_latest_version(f):
+    """
+    Wrapper that checks if newer version of 'tfmake' is available.
+    """
     @wraps(f)
     def wrapper(self, *args, **kw):
         is_outdated = False
@@ -88,10 +94,10 @@ def check_latest_version(f):
             is_outdated, latest_version = check_outdated('tfmake', __version__)
 
         except ValueError as e:
-            click.secho("\nYour version of tfmake is ahead of time! {}".format(str(e)), bold=True)
+            click.secho(str(e), bold=True)
 
         if is_outdated:
-            _msg = '* Your version of tfmake is out of date! Your version is {}, the latest is {} *'.format(__version__, latest_version)
+            _msg = 'The package tfmake is out of date. Your version is {}, the latest is {}.'.format(__version__, latest_version)
             
             click.secho('\n' + ('* ' * 43), bold=True)
             click.secho(_msg, bold=True)
@@ -162,9 +168,38 @@ class DefaultCommandHandler(object):
         else:
             self.cache = dict()
 
+    def __eval(self, return_code):
+        """
+        Evaluate return return_code from 'os.system'.
+
+        Parameters
+        ----------
+        return_code: int
+            return code from 'os.system'
+
+        Raises
+        ------
+        ClickException
+            when 'return_code' is not equal to '0'
+        """
+        if return_code != 0:
+            raise click.ClickException(return_code)
+
     def __get_environment(self, target, args=[]):
         """
         Get environment via 'select' target or terraform cli.
+
+        Parameters
+        ----------
+        target:str
+            Makefile target
+        args:list(str)
+            Arguments for 'Makefile' target.
+
+        Raises
+        ------
+        ClickException
+            When invalid request, or other error.
         """
         if target == "select":
             _args = dict(item.split("=") for item in args) 
@@ -178,7 +213,7 @@ class DefaultCommandHandler(object):
                 environment = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT, universal_newlines=True).strip()
 
             except subprocess.CalledProcessError as e:
-                raise click.ClickException("error executing '{}': {}".format(cmd, str(e)))
+                raise click.ClickException("executing '{}': {}".format(cmd, str(e)))
 
             except OSError as e:
                 raise click.ClickException("did you install terraform?")
@@ -214,27 +249,59 @@ class DefaultCommandHandler(object):
 
     def __write_to_cache(self, k, v):
         """
-        Writing cache to fs
+        Write cache to fs
+
+        Parameters
+        ----------
+        k:str
+            Key
+        v:str
+            Value
         """
         self.cache[k] = v
         _cache = os.path.join(os.getcwd(), '.tfmake', 'cache')
 
         with open(_cache, 'w+') as f:
-            # yaml.dump(self.cache, f, default_flow_style=False, explicit_start=True)
             yaml.safe_dump(self.cache, f, encoding='utf-8', allow_unicode=True)
 
     def __read_from_cache(self, k):
         """
         Get value from cache
+
+        Parameters
+        ----------
+        k:str
+            Key to retrieve from cache
+
+        Returns
+        -------
+        str
+            Value for 'k' in cache or None
         """
         return self.cache.get(k, None)
 
     @check_latest_version
     @before_and_after
     def call(self, target, args, dry_run, workspace_key_prefix, **kwargs):
-        '''
+        """
         Call provider specific Makefile using target and (optional) args.
-        '''
+
+        Parameters
+        ----------
+        target:str
+            Makefile target
+        args:list(str)
+            Arguments for 'Makefile' target
+        dry_run:bool
+            When 'True', do _not_ execute 'target'
+        workspace_key_prefix:str
+            Prefix to use in 'terraform' state
+
+        Raises
+        ------
+        ClickException
+            When 'Makefile' target return exit!=0
+        """
         makefile = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Makefile.{}'.format(self.provider))
 
         if not os.path.isfile(makefile):
@@ -264,33 +331,22 @@ class DefaultCommandHandler(object):
             _args = "args='{args}'".format(args=' '.join(['-' + arg if not arg.endswith('.plan') or '=' in arg else arg for arg in _args]))
             ## @END::ugly
 
-        env   = self.__get_environment(target, args)
-        alias = self.__get_account_alias()
-
-        # # read from cache
-        # cached_alias = self.__read_from_cache(env)
-
-        # # besides checking if alias has changed, also check if on Gitlab Runner (if so, don't ask to confirm)
-        # if cached_alias and alias != cached_alias and 'CI_JOB_ID' not in os.environ:
-        #     click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(cached_alias, self.provider, alias), abort=True)
-
         if workspace_key_prefix:
             os.environ['TFMAKE_KEY_PREFIX'] = workspace_key_prefix
 
         if len(_args) > 0:
             if not dry_run:
-                os.system("make -f {file} {target} {args}".format(file=makefile, target=target, args=_args))
+                self.__eval(os.system("make -f {file} {target} {args}".format(file=makefile, target=target, args=_args)))
             else:
                 click.echo("make -f {file} {target} {args}".format(file=makefile, target=target, args=_args))
         else:
             if not dry_run:
-                os.system("make -f {file} {target}".format(file=makefile, target=target))
+                self.__eval(os.system("make -f {file} {target}".format(file=makefile, target=target)))
             else:
                 click.echo("make -f {file} {target}".format(file=makefile, target=target))
 
-        # write to cache
-        self.__write_to_cache(env, alias)
-        
+        # # write to cache
+        # self.__write_to_cache(self.env, self.alias)
 
     def before(self, target, args, dry_run, workspace_key_prefix):
         '''
@@ -301,19 +357,19 @@ class DefaultCommandHandler(object):
             return
 
         # when auto-switch enabled, switch to target Azure subscription using 'azctx'
-        env          = self.__get_environment(target, args)
-        alias        = self.__get_account_alias()
-        cached_alias = self.__read_from_cache(env)
+        self.env          = self.__get_environment(target, args)
+        self.alias        = self.__get_account_alias()
+        self.cached_alias = self.__read_from_cache(self.env)
 
         if self.config.get('auto_switch', False) and PROVIDER(self.provider) == PROVIDER.AZURE:
-            click.secho('AutoSwitch enabled for Azure subscriptions (using cached subscription for {} environment)'.format(env), bold=True)
-            if cached_alias:
+            click.secho('AutoSwitch enabled for Azure subscriptions (using cached subscription for {} environment)'.format(self.env), bold=True)
+            if self.cached_alias:
                 try:
                     from shutil import which
                     # First, check if 'azctx' is installed
                     azctx = which('azctx')
-                    if azctx is not None and self.__get_account_alias() != cached_alias:
-                        p = subprocess.run("{} '{}'".format(azctx, cached_alias), 
+                    if azctx is not None and self.__get_account_alias() != self.cached_alias:
+                        p = subprocess.run("{} '{}'".format(azctx, self.cached_alias), 
                             shell              = True,
                             universal_newlines = True,
                             capture_output     = True,
@@ -326,10 +382,10 @@ class DefaultCommandHandler(object):
                             raise Exception(p.stderr)
 
                 except Exception as e:
-                    raise click.ClickException("switching to Azure subscription '{}': {}".format(cached_alias, str(e)))
-        elif cached_alias and alias != cached_alias and 'CI_JOB_ID' not in os.environ:
+                    raise click.ClickException("switching to Azure subscription '{}': {}".format(self.cached_alias, str(e)))
+        elif self.cached_alias and alias != self.cached_alias and 'CI_JOB_ID' not in os.environ:
             # besides checking if alias has changed, also check if on Gitlab Runner (if so, don't ask to confirm)
-            click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(cached_alias, self.provider, alias), abort=True)
+            click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(self.cached_alias, self.provider, alias), abort=True)
 
         # first, evaluate environment variables
         for e in self.config.get('environment', []) or []:
@@ -352,7 +408,7 @@ class DefaultCommandHandler(object):
 
         # next, run 'before' actions
         for pre in self.config.get('before', []) or []:
-            os.system(pre)
+            self.__eval(os.system(pre))
 
     def after(self, target, args, dry_run, workspace_key_prefix):
         '''
@@ -383,4 +439,7 @@ class DefaultCommandHandler(object):
 
         # run 'after' actions
         for post in self.config.get('after', []) or []:
-            os.system(post)
+            self.__eval(os.system(post))
+
+        # finally, write to cache
+        self.__write_to_cache(self.env, self.alias)
