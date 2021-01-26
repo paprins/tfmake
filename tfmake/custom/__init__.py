@@ -383,9 +383,9 @@ class DefaultCommandHandler(object):
 
                 except Exception as e:
                     raise click.ClickException("switching to Azure subscription '{}': {}".format(self.cached_alias, str(e)))
-        elif self.cached_alias and alias != self.cached_alias and 'CI_JOB_ID' not in os.environ:
+        elif self.cached_alias and self.alias != self.cached_alias and 'CI_JOB_ID' not in os.environ:
             # besides checking if alias has changed, also check if on Gitlab Runner (if so, don't ask to confirm)
-            click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(self.cached_alias, self.provider, alias), abort=True)
+            click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(self.cached_alias, self.provider, self.alias), abort=True)
 
         # first, evaluate environment variables
         for e in self.config.get('environment', []) or []:
