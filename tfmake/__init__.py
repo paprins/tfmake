@@ -1,12 +1,13 @@
 try:
-   # Python 3x
-   import importlib.metadata as importlib_metadata
-except ModuleNotFoundError:
-   # Python 2.x
-   import importlib_metadata
+   try:
+      # When Python >= 3.8
+      from importlib import metadata as importlib_metadata
 
-try:
-   __version__ = importlib_metadata.version(__name__)
+   except ImportError:
+      # When Python < 3.8
+      import importlib_metadata
 
-except importlib_metadata.PackageNotFoundError:
-   __version__ = None
+   __version__ = importlib_metadata.version(__package__)
+
+except ImportError:
+   __version__ = 'unknown'
