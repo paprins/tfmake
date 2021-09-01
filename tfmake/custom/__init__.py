@@ -38,6 +38,7 @@ class WORKSPACE(Enum):
     ACC = 'acc'
     QAS = 'qas'
     PRD = 'prd'
+    RUN = 'run'
 
     @classmethod
     def has_value(cls, value):
