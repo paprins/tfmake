@@ -22,7 +22,7 @@ def main():
 @click.argument('args', nargs=-1)
 @click.option('--dry-run', is_flag=True, default=False)
 @click.option('--workspace-key-prefix')
-def azure(target, args, dry_run, workspace_key_prefix):
+def azure(target:str, args:list, dry_run:bool, workspace_key_prefix:str):
     '''
     Use Azure provider
     '''
@@ -33,7 +33,7 @@ def azure(target, args, dry_run, workspace_key_prefix):
 @click.argument('args', nargs=-1)
 @click.option('--dry-run', is_flag=True, default=False)
 @click.option('--workspace-key-prefix')
-def guess(target, args, dry_run, workspace_key_prefix):
+def guess(target:str, args:list, dry_run:bool, workspace_key_prefix:str):
     '''
     Default command that guesses what provider you're using.
     '''
@@ -44,7 +44,7 @@ def guess(target, args, dry_run, workspace_key_prefix):
 @click.argument('args', nargs=-1)
 @click.option('--dry-run', is_flag=True, default=False)
 @click.option('--workspace-key-prefix')
-def aws(target, args, dry_run, workspace_key_prefix):
+def aws(target:str, args:list, dry_run:bool, workspace_key_prefix:str):
     '''
     Use AWS provider.
     '''
@@ -52,7 +52,7 @@ def aws(target, args, dry_run, workspace_key_prefix):
 
 @main.command()
 @click.argument('provider', default='aws')
-def init(provider):
+def init(provider:str):
     '''
     Create configuration for provider (migrate if needed).
     '''

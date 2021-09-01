@@ -56,7 +56,7 @@ The AWS Edition
 Usage: make <TARGET> (env=<ENVIRONMENT>) (<TERRAFORM ARGUMENTS>)
 
 Where:
- ENVIRONMENT is one of ['dev','tst','acc','prd']
+ ENVIRONMENT is one of ['dev','tst','acc','qas','prd']
  TARGET is one:
     update                          Update terraform modules and providers
     select                          Select and initialize terraform workspace (aka 'stage')

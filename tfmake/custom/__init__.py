@@ -36,6 +36,7 @@ class WORKSPACE(Enum):
     DEV = 'dev'
     TST = 'tst'
     ACC = 'acc'
+    QAS = 'qas'
     PRD = 'prd'
 
     @classmethod
