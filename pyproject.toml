@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tfmake"
-version = "1.0.41"
+version = "1.0.42"
 description = "Python based Makefile wrapper for terraform projects"
 authors = ["Pascal Prins <pascal.prins@foobar-it.com>"]
 
