@@ -1,5 +1,5 @@
 .ONESHELL:
-SHELL := bash
+SHELL := sh
 
 .PHONY := all tf_init tf_workspace tf_options tf_confirm aws_account_info
 .DEFAULT_GOAL := help
@@ -93,8 +93,7 @@ apply: tf_validate tf_options tf_confirm ## Builds or changes infrastructure
 	if [ $$retVal -ne 0 ]; then \
 		echo "terraform failed with status $$retVal"; \
 		exit 1; \
-	fi
-	@terraform output -no-color -json 2> /dev/null | jq 'with_entries(.value |= .value)' > tf.${env}.outputs.json
+	fi	
 
 apply-plan: tf_validate tf_confirm ## Builds or changes infrastructure using a saved terraform plan
 	@terraform $@ -no-color $(args) ; \
@@ -103,6 +102,8 @@ apply-plan: tf_validate tf_confirm ## Builds or changes infrastructure using a s
 		echo "terraform failed with status $$retVal"; \
 		exit 1; \
 	fi
+
+output:
 	@terraform output -no-color -json 2> /dev/null | jq 'with_entries(.value |= .value)' > tf.${env}.outputs.json
 
 destroy: tf_validate tf_options tf_confirm ## Destroy Terraform-managed infrastructure
