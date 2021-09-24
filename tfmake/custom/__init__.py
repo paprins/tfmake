@@ -304,6 +304,11 @@ class DefaultCommandHandler(object):
         ClickException
             When 'Makefile' target return exit!=0
         """
+
+        if target == 'env':
+            # only execute before+after (because of wrapper)
+            return
+
         makefile = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Makefile.{}'.format(self.provider))
 
         if not os.path.isfile(makefile):
@@ -390,6 +395,7 @@ class DefaultCommandHandler(object):
             click.confirm("\n[WARNING] You previously used '{}' for provider {}. Now you're using '{}'. Are you sure?".format(self.cached_alias, self.provider, self.alias), abort=True)
 
         # first, evaluate environment variables
+        _environ = dict()
         for e in self.config.get('environment', []) or []:
             k,v = map(str.strip, e.split('='))
             # Value 'v' could still contain hashtag to comment out rest of line
@@ -400,13 +406,21 @@ class DefaultCommandHandler(object):
                     cmd = re.search(pattern, v).group(1) # get substring between $(...)
 
                     output = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT, universal_newlines=True)
-                    os.environ[k] = output
+                    _environ[k] = output
 
                 except subprocess.CalledProcessError as e:
                     raise click.ClickException("exception executing '{}':\n\n{}".format(cmd, e.output))
 
             else:
-                os.environ[k] = v
+                _environ[k]=v
+
+        if target == 'env':
+            for k,v in _environ.items():
+                print(f'export {k}={v}')
+
+        # merge with os.environ
+        for k,v in _environ.items():
+            os.environ[k] = v
 
         # next, run 'before' actions
         for pre in self.config.get('before', []) or []:
