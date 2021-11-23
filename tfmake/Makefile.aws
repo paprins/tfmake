@@ -1,5 +1,5 @@
 .ONESHELL:
-SHELL := sh
+SHELL := bash
 
 .PHONY := all tf_init tf_workspace tf_options tf_confirm aws_account_info
 .DEFAULT_GOAL := help
