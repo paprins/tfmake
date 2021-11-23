@@ -33,12 +33,13 @@ class WORKSPACE(Enum):
     """
     Supported workspaces/environments.
     """
-    DEV = 'dev'
-    TST = 'tst'
-    ACC = 'acc'
-    QAS = 'qas'
-    PRD = 'prd'
-    RUN = 'run'
+    DEV     = 'dev'
+    TST     = 'tst'
+    ACC     = 'acc'
+    QAS     = 'qas'
+    PRD     = 'prd'
+    RUN     = 'run'
+    SANDBOX = 'sandbox'
 
     @classmethod
     def has_value(cls, value):
