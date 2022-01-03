@@ -4,7 +4,7 @@ SHELL := bash
 .PHONY := all tf_init tf_workspace tf_options tf_confirm azure_info
 .DEFAULT_GOAL := help
 
-SUPPORTED_ENVS = dev tst acc qas prd run sandbox
+SUPPORTED_ENVS = dev tst acc qas prd run sbx
 REQUIRED_BINS = terraform jq az
 env           ?= $(shell terraform workspace show)
 
@@ -19,7 +19,7 @@ help:
 	@printf "\nThe Azure Edition\n\n"
 	@printf "Usage: make <TARGET> (env=<ENVIRONMENT>) (<TERRAFORM ARGUMENTS>)\n\n"
 	@printf "Where:\n"
-	@printf " ENVIRONMENT is one of ['dev','tst','acc','qas','prd','run','sandbox']\n"
+	@printf " ENVIRONMENT is one of ['dev','tst','acc','qas','prd','run','sbx']\n"
 	@printf " TARGET is one:\n"
 	@awk -F ':|##' '/^[^\t].+?:.*?##/ {printf "\033[36m    %-30s\033[0m %s\n", $$1, $$NF }' $(MAKEFILE_LIST)
 	@printf "\nNote:\n\n"

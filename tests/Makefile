@@ -1,7 +1,7 @@
 .PHONY := all tf_init tf_workspace tf_options tf_info aws_account_info
 .DEFAULT_GOAL := help
 
-SUPPORTED_ENVS = dev tst acc qas prd run sandbox
+SUPPORTED_ENVS = dev tst acc qas prd run sbx
 REQUIRED_BINS = terraform jq aws
 env           ?= $(shell terraform workspace show)
 
@@ -15,7 +15,7 @@ all: check_prerequisites
 help:
 	@echo "Usage: make <TARGET> (env=<ENVIRONMENT>) (args=<TERRAFORM ARGUMENTS>)\n"
 	@echo "Where:"
-	@echo "\t- ENVIRONMENT is one of ['dev','tst','acc','qas','prd','run','sandbox']"
+	@echo "\t- ENVIRONMENT is one of ['dev','tst','acc','qas','prd','run','sbx']"
 	@echo "\t- TARGET is one:"
 	@awk -F ':|##' '/^[^\t].+?:.*?##/ {printf "\033[36m%-30s\033[0m %s\n", $$1, $$NF }' $(MAKEFILE_LIST)
 	@echo "\nNote:\n"
