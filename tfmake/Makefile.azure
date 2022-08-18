@@ -47,10 +47,16 @@ tf_init: azure_info
 	@if [ -e .terraform/environment ]; then rm .terraform/environment; fi;
 	@if [ -e .terraform/terraform.tfstate ]; then rm .terraform/terraform.tfstate; fi;
 
-ifdef TFMAKE_KEY_PREFIX
-	$(eval TF_KEY=$(ARM_ACCOUNT_ALIAS)/$(TFMAKE_KEY_PREFIX)/$(CURRENT_TF_KEY))
+ifdef TFMAKE_USE_SUBSCRIPTION_ID
+	$(eval TF_SUBSCRIPTION=$(ARM_SUBSCRIPTION_ID))
 else
-	$(eval TF_KEY=$(ARM_ACCOUNT_ALIAS)/$(CURRENT_TF_KEY))
+	$(eval TF_SUBSCRIPTION=$(ARM_ACCOUNT_ALIAS))
+endif
+
+ifdef TFMAKE_KEY_PREFIX
+	$(eval TF_KEY=$(TF_SUBSCRIPTION)/$(TFMAKE_KEY_PREFIX)/$(CURRENT_TF_KEY))
+else
+	$(eval TF_KEY=$(TF_SUBSCRIPTION)/$(CURRENT_TF_KEY))
 endif
 
 	@terraform init -backend-config 'key=$(TF_KEY)'
