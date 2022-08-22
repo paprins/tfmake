@@ -262,6 +262,14 @@ wcwidth = "*"
 testing = ["argcomplete", "hypothesis (>=3.56)", "nose", "requests", "mock"]
 
 [[package]]
+name = "python-terraform"
+version = "0.10.1"
+description = "This is a python module provide a wrapper of terraform command line tool"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pyyaml"
 version = "5.3.1"
 description = "YAML parser and emitter for Python"
@@ -345,7 +353,7 @@ testing = ["pathlib2", "unittest2", "jaraco.itertools", "func-timeout"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^2.7 || ^3.6"
-content-hash = "53692556384eb4d13ad681c057a7cc6f19b8af2139ef78a364ff7665bb981040"
+content-hash = "2435026bfed89b25522ffa185e0dc919f8b0944067c3407b2cbb5cb24f81febf"
 
 [metadata.files]
 atomicwrites = [
@@ -473,6 +481,9 @@ pyparsing = [
 pytest = [
     {file = "pytest-4.6.11-py2.py3-none-any.whl", hash = "sha256:a00a7d79cbbdfa9d21e7d0298392a8dd4123316bfac545075e6f8f24c94d8c97"},
     {file = "pytest-4.6.11.tar.gz", hash = "sha256:50fa82392f2120cc3ec2ca0a75ee615be4c479e66669789771f1758332be4353"},
+]
+python-terraform = [
+    {file = "python-terraform-0.10.1.tar.gz", hash = "sha256:0f4d1648c4fec61d5aa53142558ba3761c8f9ee7acce57505a1245d4dd85f5cf"},
 ]
 pyyaml = [
     {file = "PyYAML-5.3.1-cp27-cp27m-win32.whl", hash = "sha256:74809a57b329d6cc0fdccee6318f44b9b8649961fa73144a98735b0aaf029f1f"},
