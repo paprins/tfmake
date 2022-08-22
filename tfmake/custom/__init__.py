@@ -93,6 +93,10 @@ def check_latest_version(f):
     def wrapper(self, *args, **kw):
         is_outdated = False
         latest_version = __version__
+
+        if 'TFMAKE_IN_AUTOMATION' in os.environ:
+            return f(self, *args, **kw)
+ 
         try:
             is_outdated, latest_version = check_outdated('tfmake', __version__)
 
