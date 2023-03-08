@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tfmake"
-version = "1.0.56"
+version = "1.0.58"
 description = "Python based Makefile wrapper for terraform projects"
 authors = ["Pascal Prins <pascal.prins@foobar-it.com>"]
 
@@ -10,14 +10,12 @@ homepage = "https://github.com/paprins/tfmake"
 repository = "https://github.com/paprins/tfmake"
 
 [tool.poetry.dependencies]
-#python = "^2.7 || ^3.6"
 python = "^3.6"
-click = "^7.0"
+click = ">= 7.0"
 pathlib = "^1.0.1"
 Jinja2 = "^2.11.1"
-PyYAML = "^5.3.1"
-outdated = "^0.2.0"
-markupsafe = "=2.0.1"
+PyYAML = ">= 5.3.1"
+outdated = ">= 0.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
